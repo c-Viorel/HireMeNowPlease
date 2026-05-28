@@ -17,7 +17,7 @@ Mark each top-level task complete only after its tests pass and its commit exist
 - [x] Task 0: Bootstrap Laravel Application
 - [x] Task 1: Domain Schema, Models, Enums, Factories
 - [x] Task 2: Authentication, Roles, Email Verification, Access Control
-- [ ] Task 3: Public Site And Job Board
+- [x] Task 3: Public Site And Job Board
 - [ ] Task 4: Candidate Portal
 - [ ] Task 5: Employer Portal
 - [ ] Task 6: Applications, Pipeline Statuses, Shortlist
@@ -674,7 +674,7 @@ git commit -m "feat: add role based authentication"
 - Create: `/Users/viorel/Desktop/HireMe/resources/views/public/jobs/show.blade.php`
 - Test: `/Users/viorel/Desktop/HireMe/tests/Feature/PublicJobBoardTest.php`
 
-- [ ] **Step 1: Write failing public job board tests**
+- [x] **Step 1: Write failing public job board tests**
 
 ```php
 it('shows published jobs on the public job board', function () {
@@ -698,7 +698,7 @@ it('filters jobs by workplace type', function () {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
 
 Run:
 
@@ -708,11 +708,11 @@ php artisan test tests/Feature/PublicJobBoardTest.php
 
 Expected: FAIL because public controllers/views are missing.
 
-- [ ] **Step 3: Implement public controllers**
+- [x] **Step 3: Implement public controllers**
 
 Create `HomeController::__invoke()` returning featured published jobs. Create `JobController@index()` applying filters for `q`, `location`, `workplace_type`, `employment_type`, and `experience_level`. Create `JobController@show()` loading only published jobs by slug.
 
-- [ ] **Step 4: Add routes**
+- [x] **Step 4: Add routes**
 
 ```php
 Route::get('/', HomeController::class)->name('home');
@@ -720,7 +720,7 @@ Route::get('/jobs', [JobController::class, 'index'])->name('jobs.index');
 Route::get('/jobs/{job:slug}', [JobController::class, 'show'])->name('jobs.show');
 ```
 
-- [ ] **Step 5: Build public views**
+- [x] **Step 5: Build public views**
 
 Views must include:
 
@@ -729,7 +729,7 @@ Views must include:
 - filter form preserving query string
 - job detail page with apply CTA hidden behind auth if needed
 
-- [ ] **Step 6: Run verification**
+- [x] **Step 6: Run verification**
 
 Run:
 
@@ -740,7 +740,7 @@ php artisan test
 
 Expected: public job board tests pass.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add app routes resources tests

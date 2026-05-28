@@ -1,12 +1,14 @@
 <?php
 
 use App\Enums\UserRole;
+use App\Http\Controllers\Public\HomeController;
+use App\Http\Controllers\Public\JobController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', HomeController::class)->name('home');
+Route::get('/jobs', [JobController::class, 'index'])->name('jobs.index');
+Route::get('/jobs/{job:slug}', [JobController::class, 'show'])->name('jobs.show');
 
 Route::get('/dashboard', function () {
     return match (auth()->user()->role) {
