@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Storage;
 uses(RefreshDatabase::class);
 
 it('lets a candidate update their profile and upload a cv', function () {
-    Storage::fake();
+    Storage::fake('local');
     $candidate = User::factory()->create(['role' => UserRole::Candidate, 'email_verified_at' => now()]);
 
     $this->actingAs($candidate)->post('/candidate/profile', [
@@ -39,7 +39,7 @@ it('lets a candidate update their profile and upload a cv', function () {
         ->and($profile->cv_path)->not->toBeNull()
         ->and($profile->cv_path)->toStartWith("cvs/{$candidate->id}/");
 
-    Storage::assertExists($profile->cv_path);
+    Storage::disk('local')->assertExists($profile->cv_path);
 });
 
 it('preserves the current cv when updating without a new upload', function () {
@@ -55,7 +55,7 @@ it('preserves the current cv when updating without a new upload', function () {
 });
 
 it('rejects invalid candidate cv uploads', function () {
-    Storage::fake();
+    Storage::fake('local');
     $candidate = User::factory()->create(['role' => UserRole::Candidate, 'email_verified_at' => now()]);
 
     $this->actingAs($candidate)->from('/candidate/profile')->post('/candidate/profile', [
@@ -69,6 +69,51 @@ it('rejects invalid candidate cv uploads', function () {
         'cv' => UploadedFile::fake()->create('cv.pdf', 6000, 'application/pdf'),
     ])->assertRedirect('/candidate/profile')
         ->assertSessionHasErrors('cv');
+});
+
+it('lets a candidate download their own cv', function () {
+    Storage::fake('local');
+    $candidate = User::factory()->create(['role' => UserRole::Candidate, 'email_verified_at' => now()]);
+    Storage::disk('local')->put("cvs/{$candidate->id}/resume.pdf", 'private cv contents');
+    CandidateProfile::factory()->for($candidate, 'user')->create([
+        'cv_path' => "cvs/{$candidate->id}/resume.pdf",
+    ]);
+
+    $this->actingAs($candidate)->get('/candidate/profile/cv')
+        ->assertOk()
+        ->assertDownload('resume.pdf');
+});
+
+it('redirects unauthenticated users from the cv download route', function () {
+    $this->get('/candidate/profile/cv')->assertRedirect('/login');
+});
+
+it('blocks non candidates from downloading candidate cvs', function () {
+    $employer = User::factory()->create(['role' => UserRole::Employer, 'email_verified_at' => now()]);
+
+    $this->actingAs($employer)->get('/candidate/profile/cv')->assertForbidden();
+});
+
+it('deletes the old local cv when a candidate replaces it', function () {
+    Storage::fake('local');
+    $candidate = User::factory()->create(['role' => UserRole::Candidate, 'email_verified_at' => now()]);
+    $oldPath = "cvs/{$candidate->id}/old.pdf";
+
+    Storage::disk('local')->put($oldPath, 'old cv contents');
+    CandidateProfile::factory()->for($candidate, 'user')->create(['cv_path' => $oldPath]);
+
+    $this->actingAs($candidate)->post('/candidate/profile', [
+        'headline' => 'Senior Laravel Developer',
+        'skills' => 'PHP, Laravel',
+        'cv' => UploadedFile::fake()->create('new.pdf', 128, 'application/pdf'),
+    ])->assertRedirect('/candidate/profile');
+
+    $newPath = $candidate->fresh()->candidateProfile->cv_path;
+
+    expect($newPath)->not->toBe($oldPath);
+
+    Storage::disk('local')->assertMissing($oldPath);
+    Storage::disk('local')->assertExists($newPath);
 });
 
 it('only verified candidates can access candidate dashboard and profile', function () {

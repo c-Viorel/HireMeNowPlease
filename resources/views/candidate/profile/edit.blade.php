@@ -53,7 +53,7 @@
                         @if ($profile?->cv_path)
                             <p class="mt-3 text-sm text-gray-600">
                                 Current CV:
-                                <a href="{{ Illuminate\Support\Facades\Storage::url($profile->cv_path) }}" class="font-medium text-indigo-600 hover:text-indigo-700">
+                                <a href="{{ route('candidate.profile.cv') }}" class="font-medium text-indigo-600 hover:text-indigo-700">
                                     {{ basename($profile->cv_path) }}
                                 </a>
                             </p>

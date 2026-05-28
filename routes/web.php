@@ -27,6 +27,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/dashboard', CandidateDashboardController::class)->name('dashboard');
         Route::get('/profile', [CandidateProfileController::class, 'edit'])->name('profile.edit');
         Route::post('/profile', [CandidateProfileController::class, 'update'])->name('profile.update');
+        Route::get('/profile/cv', [CandidateProfileController::class, 'downloadCv'])->name('profile.cv');
     });
 
     Route::get('/employer/dashboard', fn () => view('dashboard'))

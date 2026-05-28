@@ -7,6 +7,8 @@ use App\Http\Requests\CandidateProfileRequest;
 use App\Models\CandidateProfile;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ProfileController extends Controller
 {
@@ -21,6 +23,7 @@ class ProfileController extends Controller
     {
         $userId = auth()->id();
         $profile = auth()->user()->candidateProfile;
+        $oldCvPath = $profile?->cv_path;
         $validated = $request->validated();
 
         $data = [
@@ -33,16 +36,29 @@ class ProfileController extends Controller
                 ->filter()
                 ->values()
                 ->all(),
-            'cv_path' => $profile?->cv_path,
+            'cv_path' => $oldCvPath,
         ];
 
         if ($request->hasFile('cv')) {
-            $data['cv_path'] = $request->file('cv')->store("cvs/{$userId}");
+            $data['cv_path'] = $request->file('cv')->store("cvs/{$userId}", 'local');
         }
 
         CandidateProfile::updateOrCreate(['user_id' => $userId], $data);
 
+        if ($oldCvPath && $oldCvPath !== $data['cv_path'] && Storage::disk('local')->exists($oldCvPath)) {
+            Storage::disk('local')->delete($oldCvPath);
+        }
+
         return redirect()->route('candidate.profile.edit')
             ->with('status', 'candidate-profile-updated');
+    }
+
+    public function downloadCv(): StreamedResponse
+    {
+        $profile = auth()->user()->candidateProfile;
+
+        abort_if(! $profile?->cv_path || ! Storage::disk('local')->exists($profile->cv_path), 404);
+
+        return Storage::disk('local')->download($profile->cv_path);
     }
 }
