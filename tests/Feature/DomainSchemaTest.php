@@ -16,6 +16,13 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
+it('defaults new users to active candidate accounts from the factory', function () {
+    $user = User::factory()->make();
+
+    expect($user->role)->toBe(UserRole::Candidate)
+        ->and($user->is_active)->toBeTrue();
+});
+
 it('creates the core candidate employer job application graph', function () {
     $candidate = User::factory()->create(['role' => UserRole::Candidate]);
     $candidateProfile = CandidateProfile::factory()->for($candidate, 'user')->create();
