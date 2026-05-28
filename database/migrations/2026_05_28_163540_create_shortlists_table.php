@@ -16,8 +16,10 @@ return new class extends Migration
             $table->foreignId('company_id')->constrained()->cascadeOnDelete();
             $table->foreignId('job_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('candidate_id')->constrained('users')->cascadeOnDelete();
+            $table->unsignedBigInteger('job_scope_id')->storedAs('coalesce(job_id, 0)');
             $table->timestamps();
             $table->unique(['company_id', 'job_id', 'candidate_id']);
+            $table->unique(['company_id', 'candidate_id', 'job_scope_id']);
         });
     }
 

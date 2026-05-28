@@ -22,6 +22,7 @@ return new class extends Migration
             $table->json('skills')->nullable();
             $table->string('cv_path')->nullable();
             $table->timestamps();
+            $table->unique(['id', 'user_id']);
         });
     }
 

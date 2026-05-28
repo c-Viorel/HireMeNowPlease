@@ -15,12 +15,16 @@ return new class extends Migration
             $table->id();
             $table->foreignId('job_id')->constrained()->cascadeOnDelete();
             $table->foreignId('candidate_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('candidate_profile_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('candidate_profile_id');
             $table->text('message')->nullable();
             $table->string('cv_path')->nullable();
             $table->string('status')->default('submitted');
             $table->timestamps();
             $table->unique(['job_id', 'candidate_id']);
+            $table->foreign(['candidate_profile_id', 'candidate_id'])
+                ->references(['id', 'user_id'])
+                ->on('candidate_profiles')
+                ->cascadeOnDelete();
         });
     }
 
