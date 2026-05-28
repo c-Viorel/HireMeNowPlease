@@ -42,6 +42,7 @@ Set these variables in `.env`:
 - `MAIL_FROM_ADDRESS=no-reply@your-domain.example`
 - `MAIL_FROM_NAME="${APP_NAME}"`
 - `FILESYSTEM_DISK=local`
+- `HIREME_ADMIN_PASSWORD=generate-a-strong-admin-password`
 
 Keep `.env` out of version control. Generate `APP_KEY` once during first production setup with `php artisan key:generate --force`; do not regenerate `APP_KEY` on an existing production install unless intentionally rotating keys with a rollback plan.
 
@@ -62,6 +63,7 @@ composer install --no-dev --optimize-autoloader
 npm ci
 npm run build
 php artisan migrate --force
+php artisan db:seed --force
 php artisan storage:link
 php artisan config:cache
 php artisan route:cache
@@ -70,13 +72,15 @@ php artisan view:cache
 
 Notifications are delivered through Laravel's mail and database notification channels. The mail channel uses the SMTP settings above, while in-app notification records are stored in the `notifications` table.
 
-`QUEUE_CONNECTION=database` and `DB_QUEUE_TABLE=queue_jobs` keep the deployment ready for database-backed queued work. If queued jobs are enabled on the server, start or restart the configured queue worker after each release so jobs are processed from `queue_jobs`:
+Set `HIREME_ADMIN_PASSWORD` before running `php artisan db:seed --force`; the seeder creates or updates the initial admin account at `admin@hireme.local`. Change the admin email after first login if the production team wants a domain-specific address.
+
+V1 notifications run synchronously because the notification classes do not implement queued delivery yet. `QUEUE_CONNECTION=database` and `DB_QUEUE_TABLE=queue_jobs` keep the deployment ready for future database-backed queued work. If queued jobs are enabled later, start or restart the configured queue worker after each release so jobs are processed from `queue_jobs`:
 
 ```bash
 php artisan queue:work database --queue=default --tries=3
 ```
 
-Use Hostinger's process manager or a supervised shell process if available. If a persistent worker is not available on the plan, run notifications synchronously or use a cron-triggered queue command as a temporary fallback until a supervised worker is configured.
+Use Hostinger's process manager or a supervised shell process if available. If a persistent worker is not available on the plan and queued notifications are introduced later, set `QUEUE_CONNECTION=sync` until a supervised worker is configured.
 
 ## Smoke Checks
 
