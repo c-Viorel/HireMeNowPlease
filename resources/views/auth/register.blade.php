@@ -16,6 +16,39 @@
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
+        <!-- Account type -->
+        <div class="mt-4">
+            <x-input-label :value="__('Account type')" />
+
+            <div class="mt-2 space-y-2">
+                <label for="role_candidate" class="flex items-center gap-2 text-sm text-gray-700">
+                    <input
+                        id="role_candidate"
+                        name="role"
+                        type="radio"
+                        value="candidate"
+                        required
+                        @checked(old('role', 'candidate') === 'candidate')
+                    >
+                    <span>{{ __('Candidate') }}</span>
+                </label>
+
+                <label for="role_employer" class="flex items-center gap-2 text-sm text-gray-700">
+                    <input
+                        id="role_employer"
+                        name="role"
+                        type="radio"
+                        value="employer"
+                        required
+                        @checked(old('role') === 'employer')
+                    >
+                    <span>{{ __('Employer') }}</span>
+                </label>
+            </div>
+
+            <x-input-error :messages="$errors->get('role')" class="mt-2" />
+        </div>
+
         <!-- Password -->
         <div class="mt-4">
             <x-input-label for="password" :value="__('Password')" />

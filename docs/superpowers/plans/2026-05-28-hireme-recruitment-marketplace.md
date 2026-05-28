@@ -16,7 +16,7 @@ Mark each top-level task complete only after its tests pass and its commit exist
 
 - [x] Task 0: Bootstrap Laravel Application
 - [x] Task 1: Domain Schema, Models, Enums, Factories
-- [ ] Task 2: Authentication, Roles, Email Verification, Access Control
+- [x] Task 2: Authentication, Roles, Email Verification, Access Control
 - [ ] Task 3: Public Site And Job Board
 - [ ] Task 4: Candidate Portal
 - [ ] Task 5: Employer Portal
@@ -519,7 +519,7 @@ git commit -m "feat: add recruitment marketplace domain schema"
 - Create: `/Users/viorel/Desktop/HireMe/tests/Feature/Auth/RoleRegistrationTest.php`
 - Create: `/Users/viorel/Desktop/HireMe/tests/Feature/Auth/RoleAccessTest.php`
 
-- [ ] **Step 1: Write failing role registration tests**
+- [x] **Step 1: Write failing role registration tests**
 
 Create tests that assert candidate and employer registration store the selected role:
 
@@ -555,7 +555,7 @@ it('registers an employer account', function () {
 });
 ```
 
-- [ ] **Step 2: Write failing route access tests**
+- [x] **Step 2: Write failing route access tests**
 
 Create tests asserting candidates cannot open employer routes and employers cannot open candidate routes:
 
@@ -573,7 +573,7 @@ it('blocks employers from candidate dashboard', function () {
 });
 ```
 
-- [ ] **Step 3: Run tests to verify failure**
+- [x] **Step 3: Run tests to verify failure**
 
 Run:
 
@@ -583,7 +583,7 @@ php artisan test tests/Feature/Auth/RoleRegistrationTest.php tests/Feature/Auth/
 
 Expected: FAIL because role input and middleware routes are not wired yet.
 
-- [ ] **Step 4: Implement role middleware**
+- [x] **Step 4: Implement role middleware**
 
 Create `/Users/viorel/Desktop/HireMe/app/Http/Middleware/EnsureUserRole.php`:
 
@@ -609,7 +609,7 @@ class EnsureUserRole
 
 Register alias `role` in `/Users/viorel/Desktop/HireMe/bootstrap/app.php`.
 
-- [ ] **Step 5: Add role selection to registration**
+- [x] **Step 5: Add role selection to registration**
 
 Update validation in `RegisteredUserController`:
 
@@ -625,7 +625,7 @@ Store the value:
 
 Add a required select/radio control to `resources/views/auth/register.blade.php` with only `candidate` and `employer`.
 
-- [ ] **Step 6: Add role dashboard redirects and protected route groups**
+- [x] **Step 6: Add role dashboard redirects and protected route groups**
 
 In `/Users/viorel/Desktop/HireMe/routes/web.php`, define:
 
@@ -641,7 +641,7 @@ Route::get('/dashboard', function () {
 
 Add minimal dashboard routes with `auth`, `verified`, and `role:*` middleware so access-control tests have concrete endpoints before the full dashboards are built.
 
-- [ ] **Step 7: Run verification**
+- [x] **Step 7: Run verification**
 
 Run:
 
@@ -652,7 +652,7 @@ php artisan test
 
 Expected: auth role tests and existing tests pass.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add app bootstrap resources routes tests
