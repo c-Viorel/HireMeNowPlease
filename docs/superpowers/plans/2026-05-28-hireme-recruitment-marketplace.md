@@ -14,19 +14,19 @@
 
 Mark each top-level task complete only after its tests pass and its commit exists.
 
-- [ ] Task 0: Bootstrap Laravel Application
-- [ ] Task 1: Domain Schema, Models, Enums, Factories
-- [ ] Task 2: Authentication, Roles, Email Verification, Access Control
-- [ ] Task 3: Public Site And Job Board
-- [ ] Task 4: Candidate Portal
-- [ ] Task 5: Employer Portal
-- [ ] Task 6: Applications, Pipeline Statuses, Shortlist
-- [ ] Task 7: Messaging
-- [ ] Task 8: Admin Panel
-- [ ] Task 9: Notifications And Mail
-- [ ] Task 10: UI Shell, Responsive Polish, Navigation
-- [ ] Task 11: Deployment And Hostinger Readiness
-- [ ] Task 12: End-To-End Verification Pass
+- [x] Task 0: Bootstrap Laravel Application
+- [x] Task 1: Domain Schema, Models, Enums, Factories
+- [x] Task 2: Authentication, Roles, Email Verification, Access Control
+- [x] Task 3: Public Site And Job Board
+- [x] Task 4: Candidate Portal
+- [x] Task 5: Employer Portal
+- [x] Task 6: Applications, Pipeline Statuses, Shortlist
+- [x] Task 7: Messaging
+- [x] Task 8: Admin Panel
+- [x] Task 9: Notifications And Mail
+- [x] Task 10: UI Shell, Responsive Polish, Navigation
+- [x] Task 11: Deployment And Hostinger Readiness
+- [x] Task 12: End-To-End Verification Pass
 
 ## Dependency Map
 
@@ -79,13 +79,15 @@ The final Laravel project should use these responsibility boundaries:
 - Create: `/Users/viorel/Desktop/HireMe/resources/views/layouts/app.blade.php`
 - Test: `/Users/viorel/Desktop/HireMe/tests/Feature/SmokeTest.php`
 
-- [ ] **Step 1: Scaffold Laravel in the repo root**
+- [x] **Step 1: Scaffold Laravel into a temporary directory and merge it into the repo root**
 
 Run:
 
 ```bash
-cd /Users/viorel/Desktop/HireMe
-composer create-project laravel/laravel .
+cd /Users/viorel/Desktop/HireMe/.worktrees/implementation
+composer create-project laravel/laravel .laravel-tmp
+rsync -a .laravel-tmp/ ./
+rm -rf .laravel-tmp
 composer require laravel/breeze --dev
 php artisan breeze:install blade --pest
 npm install
@@ -93,7 +95,7 @@ npm install
 
 Expected: Laravel files exist in the current directory, Breeze auth views are installed, and dependency installation completes without errors.
 
-- [ ] **Step 2: Configure local database for tests**
+- [x] **Step 2: Configure local database for tests**
 
 Modify `/Users/viorel/Desktop/HireMe/phpunit.xml` so the testing database uses SQLite in memory:
 
@@ -104,7 +106,7 @@ Modify `/Users/viorel/Desktop/HireMe/phpunit.xml` so the testing database uses S
 
 Expected: tests can run without a local MySQL database.
 
-- [ ] **Step 3: Add a smoke test**
+- [x] **Step 3: Add a smoke test**
 
 Create `/Users/viorel/Desktop/HireMe/tests/Feature/SmokeTest.php`:
 
@@ -122,19 +124,19 @@ it('loads the public homepage', function () {
 });
 ```
 
-- [ ] **Step 4: Run bootstrap verification**
+- [x] **Step 4: Run bootstrap verification**
 
 Run:
 
 ```bash
-cd /Users/viorel/Desktop/HireMe
+cd /Users/viorel/Desktop/HireMe/.worktrees/implementation
 php artisan test tests/Feature/SmokeTest.php
 npm run build
 ```
 
 Expected: smoke test passes and Vite build completes.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add .
@@ -174,7 +176,7 @@ git commit -m "chore: bootstrap laravel application"
 - Create: `/Users/viorel/Desktop/HireMe/database/factories/JobFactory.php`
 - Create: `/Users/viorel/Desktop/HireMe/tests/Feature/DomainSchemaTest.php`
 
-- [ ] **Step 1: Write failing schema relationship tests**
+- [x] **Step 1: Write failing schema relationship tests**
 
 Create `/Users/viorel/Desktop/HireMe/tests/Feature/DomainSchemaTest.php`:
 
@@ -234,7 +236,7 @@ it('creates the core candidate employer job application graph', function () {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run:
 
@@ -244,7 +246,7 @@ php artisan test tests/Feature/DomainSchemaTest.php
 
 Expected: FAIL because enums/models/migrations do not exist yet.
 
-- [ ] **Step 3: Create enums**
+- [x] **Step 3: Create enums**
 
 Create these enum files:
 
@@ -319,7 +321,7 @@ enum WorkplaceType: string
 }
 ```
 
-- [ ] **Step 4: Create migrations**
+- [x] **Step 4: Create migrations**
 
 Use Artisan:
 
@@ -437,7 +439,7 @@ Schema::create('messages', function (Blueprint $table) {
 });
 ```
 
-- [ ] **Step 5: Implement model casts and relationships**
+- [x] **Step 5: Implement model casts and relationships**
 
 Add casts and relationships matching the tests:
 
@@ -461,7 +463,7 @@ public function companies(): HasMany
 
 Use equivalent `belongsTo`, `hasMany`, and `hasOne` relations for all new models.
 
-- [ ] **Step 6: Add factories**
+- [x] **Step 6: Add factories**
 
 Factories must create valid objects with default enum values. Example for `JobFactory`:
 
@@ -483,7 +485,7 @@ public function definition(): array
 }
 ```
 
-- [ ] **Step 7: Run verification**
+- [x] **Step 7: Run verification**
 
 Run:
 
@@ -494,7 +496,7 @@ php artisan test
 
 Expected: domain schema test and existing tests pass.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add app database tests
@@ -517,7 +519,7 @@ git commit -m "feat: add recruitment marketplace domain schema"
 - Create: `/Users/viorel/Desktop/HireMe/tests/Feature/Auth/RoleRegistrationTest.php`
 - Create: `/Users/viorel/Desktop/HireMe/tests/Feature/Auth/RoleAccessTest.php`
 
-- [ ] **Step 1: Write failing role registration tests**
+- [x] **Step 1: Write failing role registration tests**
 
 Create tests that assert candidate and employer registration store the selected role:
 
@@ -553,7 +555,7 @@ it('registers an employer account', function () {
 });
 ```
 
-- [ ] **Step 2: Write failing route access tests**
+- [x] **Step 2: Write failing route access tests**
 
 Create tests asserting candidates cannot open employer routes and employers cannot open candidate routes:
 
@@ -571,7 +573,7 @@ it('blocks employers from candidate dashboard', function () {
 });
 ```
 
-- [ ] **Step 3: Run tests to verify failure**
+- [x] **Step 3: Run tests to verify failure**
 
 Run:
 
@@ -581,7 +583,7 @@ php artisan test tests/Feature/Auth/RoleRegistrationTest.php tests/Feature/Auth/
 
 Expected: FAIL because role input and middleware routes are not wired yet.
 
-- [ ] **Step 4: Implement role middleware**
+- [x] **Step 4: Implement role middleware**
 
 Create `/Users/viorel/Desktop/HireMe/app/Http/Middleware/EnsureUserRole.php`:
 
@@ -607,7 +609,7 @@ class EnsureUserRole
 
 Register alias `role` in `/Users/viorel/Desktop/HireMe/bootstrap/app.php`.
 
-- [ ] **Step 5: Add role selection to registration**
+- [x] **Step 5: Add role selection to registration**
 
 Update validation in `RegisteredUserController`:
 
@@ -623,7 +625,7 @@ Store the value:
 
 Add a required select/radio control to `resources/views/auth/register.blade.php` with only `candidate` and `employer`.
 
-- [ ] **Step 6: Add role dashboard redirects and protected route groups**
+- [x] **Step 6: Add role dashboard redirects and protected route groups**
 
 In `/Users/viorel/Desktop/HireMe/routes/web.php`, define:
 
@@ -639,7 +641,7 @@ Route::get('/dashboard', function () {
 
 Add minimal dashboard routes with `auth`, `verified`, and `role:*` middleware so access-control tests have concrete endpoints before the full dashboards are built.
 
-- [ ] **Step 7: Run verification**
+- [x] **Step 7: Run verification**
 
 Run:
 
@@ -650,7 +652,7 @@ php artisan test
 
 Expected: auth role tests and existing tests pass.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add app bootstrap resources routes tests
@@ -672,7 +674,7 @@ git commit -m "feat: add role based authentication"
 - Create: `/Users/viorel/Desktop/HireMe/resources/views/public/jobs/show.blade.php`
 - Test: `/Users/viorel/Desktop/HireMe/tests/Feature/PublicJobBoardTest.php`
 
-- [ ] **Step 1: Write failing public job board tests**
+- [x] **Step 1: Write failing public job board tests**
 
 ```php
 it('shows published jobs on the public job board', function () {
@@ -696,7 +698,7 @@ it('filters jobs by workplace type', function () {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
 
 Run:
 
@@ -706,11 +708,11 @@ php artisan test tests/Feature/PublicJobBoardTest.php
 
 Expected: FAIL because public controllers/views are missing.
 
-- [ ] **Step 3: Implement public controllers**
+- [x] **Step 3: Implement public controllers**
 
 Create `HomeController::__invoke()` returning featured published jobs. Create `JobController@index()` applying filters for `q`, `location`, `workplace_type`, `employment_type`, and `experience_level`. Create `JobController@show()` loading only published jobs by slug.
 
-- [ ] **Step 4: Add routes**
+- [x] **Step 4: Add routes**
 
 ```php
 Route::get('/', HomeController::class)->name('home');
@@ -718,7 +720,7 @@ Route::get('/jobs', [JobController::class, 'index'])->name('jobs.index');
 Route::get('/jobs/{job:slug}', [JobController::class, 'show'])->name('jobs.show');
 ```
 
-- [ ] **Step 5: Build public views**
+- [x] **Step 5: Build public views**
 
 Views must include:
 
@@ -727,7 +729,7 @@ Views must include:
 - filter form preserving query string
 - job detail page with apply CTA hidden behind auth if needed
 
-- [ ] **Step 6: Run verification**
+- [x] **Step 6: Run verification**
 
 Run:
 
@@ -738,7 +740,7 @@ php artisan test
 
 Expected: public job board tests pass.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add app routes resources tests
@@ -760,7 +762,7 @@ git commit -m "feat: add public job board"
 - Modify: `/Users/viorel/Desktop/HireMe/routes/web.php`
 - Test: `/Users/viorel/Desktop/HireMe/tests/Feature/CandidatePortalTest.php`
 
-- [ ] **Step 1: Write failing candidate profile tests**
+- [x] **Step 1: Write failing candidate profile tests**
 
 ```php
 it('lets a candidate update their profile and upload a cv', function () {
@@ -785,7 +787,7 @@ it('lets a candidate update their profile and upload a cv', function () {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
 
 Run:
 
@@ -795,7 +797,7 @@ php artisan test tests/Feature/CandidatePortalTest.php
 
 Expected: FAIL because candidate portal routes/controllers are missing.
 
-- [ ] **Step 3: Implement request validation**
+- [x] **Step 3: Implement request validation**
 
 `CandidateProfileRequest` rules:
 
@@ -810,11 +812,11 @@ return [
 ];
 ```
 
-- [ ] **Step 4: Implement candidate profile controller**
+- [x] **Step 4: Implement candidate profile controller**
 
 Store CVs under `cvs/{user_id}` on the default disk, convert comma-separated skills to JSON array, and use `updateOrCreate(['user_id' => auth()->id()], [...])`.
 
-- [ ] **Step 5: Add candidate routes**
+- [x] **Step 5: Add candidate routes**
 
 ```php
 Route::middleware(['auth', 'verified', 'role:candidate'])->prefix('candidate')->name('candidate.')->group(function () {
@@ -824,11 +826,11 @@ Route::middleware(['auth', 'verified', 'role:candidate'])->prefix('candidate')->
 });
 ```
 
-- [ ] **Step 6: Build views**
+- [x] **Step 6: Build views**
 
 Dashboard shows profile completion, recent applications, and recent conversations. Profile view includes the validated fields and current CV link when present.
 
-- [ ] **Step 7: Run verification**
+- [x] **Step 7: Run verification**
 
 Run:
 
@@ -839,7 +841,7 @@ php artisan test
 
 Expected: candidate portal tests pass.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add app routes resources tests
@@ -864,7 +866,7 @@ git commit -m "feat: add candidate portal"
 - Modify: `/Users/viorel/Desktop/HireMe/routes/web.php`
 - Test: `/Users/viorel/Desktop/HireMe/tests/Feature/EmployerPortalTest.php`
 
-- [ ] **Step 1: Write failing employer tests**
+- [x] **Step 1: Write failing employer tests**
 
 ```php
 it('lets an employer create a company and publish a job', function () {
@@ -900,7 +902,7 @@ it('lets an employer create a company and publish a job', function () {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
 
 Run:
 
@@ -910,15 +912,15 @@ php artisan test tests/Feature/EmployerPortalTest.php
 
 Expected: FAIL because employer portal routes/controllers are missing.
 
-- [ ] **Step 3: Implement company and job requests**
+- [x] **Step 3: Implement company and job requests**
 
 Company request validates name, description, website URL, location, and logo image max 2048 KB. Job request validates ownership of `company_id`, title, description, location, employment/workplace enum values, experience level, salary range, and status `draft|published`.
 
-- [ ] **Step 4: Implement employer controllers**
+- [x] **Step 4: Implement employer controllers**
 
 Company creation must set `owner_id` to current user, generate a unique slug, upload logo to `company-logos/{company_id}`, and default company status to `pending`. Job creation must only allow companies owned by the current employer and set `published_at` when status is `published`.
 
-- [ ] **Step 5: Add employer routes**
+- [x] **Step 5: Add employer routes**
 
 ```php
 Route::middleware(['auth', 'verified', 'role:employer'])->prefix('employer')->name('employer.')->group(function () {
@@ -928,11 +930,11 @@ Route::middleware(['auth', 'verified', 'role:employer'])->prefix('employer')->na
 });
 ```
 
-- [ ] **Step 6: Build views**
+- [x] **Step 6: Build views**
 
 Employer dashboard shows company status, active jobs, application counts, and latest messages. Company/job CRUD views should be practical forms with validation errors.
 
-- [ ] **Step 7: Run verification**
+- [x] **Step 7: Run verification**
 
 Run:
 
@@ -943,7 +945,7 @@ php artisan test
 
 Expected: employer portal tests pass.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add app routes resources tests
@@ -968,7 +970,7 @@ git commit -m "feat: add employer portal"
 - Create: `/Users/viorel/Desktop/HireMe/resources/views/employer/applications/show.blade.php`
 - Test: `/Users/viorel/Desktop/HireMe/tests/Feature/ApplicationWorkflowTest.php`
 
-- [ ] **Step 1: Write failing workflow tests**
+- [x] **Step 1: Write failing workflow tests**
 
 ```php
 it('lets a verified candidate apply once and lets employer update status', function () {
@@ -995,7 +997,7 @@ it('lets a verified candidate apply once and lets employer update status', funct
 });
 ```
 
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
 
 Run:
 
@@ -1005,23 +1007,23 @@ php artisan test tests/Feature/ApplicationWorkflowTest.php
 
 Expected: FAIL because application routes/controllers are missing.
 
-- [ ] **Step 3: Implement candidate application creation**
+- [x] **Step 3: Implement candidate application creation**
 
 Candidates must be verified, have a candidate profile, and cannot apply twice to the same job. Store `candidate_profile_id`, message, current CV path, and initial status `submitted`.
 
-- [ ] **Step 4: Implement employer application management**
+- [x] **Step 4: Implement employer application management**
 
 Employers may view and update only applications for jobs owned by their companies. Status update accepts `viewed`, `shortlisted`, `interview`, `rejected`, `accepted`.
 
-- [ ] **Step 5: Implement shortlist**
+- [x] **Step 5: Implement shortlist**
 
 Shortlisting creates or updates `shortlists` and sets the application status to `shortlisted` when the shortlist action comes from an application.
 
-- [ ] **Step 6: Add routes and views**
+- [x] **Step 6: Add routes and views**
 
 Add candidate application routes under `/candidate/applications`; employer application routes under `/employer/applications`; add apply form to public job detail page.
 
-- [ ] **Step 7: Run verification**
+- [x] **Step 7: Run verification**
 
 Run:
 
@@ -1032,7 +1034,7 @@ php artisan test
 
 Expected: application workflow tests pass.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add app routes resources tests
@@ -1055,7 +1057,7 @@ git commit -m "feat: add application workflow and shortlist"
 - Create: `/Users/viorel/Desktop/HireMe/resources/views/conversations/show.blade.php`
 - Test: `/Users/viorel/Desktop/HireMe/tests/Feature/MessagingTest.php`
 
-- [ ] **Step 1: Write failing messaging tests**
+- [x] **Step 1: Write failing messaging tests**
 
 ```php
 function createApplicationParticipants(): array
@@ -1096,7 +1098,7 @@ it('lets application participants exchange messages', function () {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
 
 Run:
 
@@ -1106,15 +1108,15 @@ php artisan test tests/Feature/MessagingTest.php
 
 Expected: FAIL because messaging controllers/policies are missing.
 
-- [ ] **Step 3: Implement conversation policy**
+- [x] **Step 3: Implement conversation policy**
 
 Allow access only when the current user is the application candidate or owns the application job's company.
 
-- [ ] **Step 4: Implement conversation creation and message sending**
+- [x] **Step 4: Implement conversation creation and message sending**
 
 `ConversationController@store` creates one conversation per application using `firstOrCreate`. `MessageController@store` validates `body` as required string max 5000 and stores `sender_id`.
 
-- [ ] **Step 5: Add routes and views**
+- [x] **Step 5: Add routes and views**
 
 Routes:
 
@@ -1127,7 +1129,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 ```
 
-- [ ] **Step 6: Run verification**
+- [x] **Step 6: Run verification**
 
 Run:
 
@@ -1138,7 +1140,7 @@ php artisan test
 
 Expected: messaging tests pass.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add app routes resources tests
@@ -1163,7 +1165,7 @@ git commit -m "feat: add application messaging"
 - Create: `/Users/viorel/Desktop/HireMe/resources/views/admin/jobs/index.blade.php`
 - Test: `/Users/viorel/Desktop/HireMe/tests/Feature/AdminPanelTest.php`
 
-- [ ] **Step 1: Write failing admin tests**
+- [x] **Step 1: Write failing admin tests**
 
 ```php
 it('lets admins moderate companies and jobs', function () {
@@ -1184,7 +1186,7 @@ it('lets admins moderate companies and jobs', function () {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
 
 Run:
 
@@ -1194,11 +1196,11 @@ php artisan test tests/Feature/AdminPanelTest.php
 
 Expected: FAIL because admin routes/controllers are missing.
 
-- [ ] **Step 3: Implement admin controllers**
+- [x] **Step 3: Implement admin controllers**
 
 Dashboard shows counts for users, companies, jobs, applications. User controller toggles `is_active`. Company controller updates status `pending|approved|blocked`. Job controller updates status `pending|published|closed|rejected`.
 
-- [ ] **Step 4: Add admin routes**
+- [x] **Step 4: Add admin routes**
 
 ```php
 Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -1212,7 +1214,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
 });
 ```
 
-- [ ] **Step 5: Add admin seeder**
+- [x] **Step 5: Add admin seeder**
 
 Modify `/Users/viorel/Desktop/HireMe/database/seeders/DatabaseSeeder.php`:
 
@@ -1225,7 +1227,7 @@ User::factory()->create([
 ]);
 ```
 
-- [ ] **Step 6: Run verification**
+- [x] **Step 6: Run verification**
 
 Run:
 
@@ -1236,7 +1238,7 @@ php artisan test
 
 Expected: admin tests pass.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add app database routes resources tests
@@ -1257,7 +1259,7 @@ git commit -m "feat: add admin moderation panel"
 - Modify: message controller
 - Test: `/Users/viorel/Desktop/HireMe/tests/Feature/NotificationTest.php`
 
-- [ ] **Step 1: Write failing notification tests**
+- [x] **Step 1: Write failing notification tests**
 
 ```php
 function createCandidateEmployerAndPublishedJob(): array
@@ -1309,7 +1311,7 @@ it('notifies candidate when application status changes', function () {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
 
 Run:
 
@@ -1319,11 +1321,11 @@ php artisan test tests/Feature/NotificationTest.php
 
 Expected: FAIL because notification classes are missing.
 
-- [ ] **Step 3: Implement notifications**
+- [x] **Step 3: Implement notifications**
 
 Each notification should return `['mail', 'database']` from `via()`. Email copy must be concise and include a link to the relevant dashboard/application/conversation route.
 
-- [ ] **Step 4: Trigger notifications**
+- [x] **Step 4: Trigger notifications**
 
 Send:
 
@@ -1331,7 +1333,7 @@ Send:
 - `ApplicationStatusChangedNotification` to candidate after status change.
 - `NewMessageNotification` to the other conversation participant after message creation.
 
-- [ ] **Step 5: Run verification**
+- [x] **Step 5: Run verification**
 
 Run:
 
@@ -1342,7 +1344,7 @@ php artisan test
 
 Expected: notification tests pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add app tests
@@ -1363,7 +1365,7 @@ git commit -m "feat: add recruitment notifications"
 - Modify: public/candidate/employer/admin Blade views
 - Test: `/Users/viorel/Desktop/HireMe/tests/Feature/NavigationTest.php`
 
-- [ ] **Step 1: Write failing navigation tests**
+- [x] **Step 1: Write failing navigation tests**
 
 ```php
 it('shows candidate navigation only to candidates', function () {
@@ -1385,7 +1387,7 @@ it('shows employer navigation only to employers', function () {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
 
 Run:
 
@@ -1395,7 +1397,7 @@ php artisan test tests/Feature/NavigationTest.php
 
 Expected: FAIL until layouts and navigation are implemented.
 
-- [ ] **Step 3: Implement shared layouts**
+- [x] **Step 3: Implement shared layouts**
 
 Create public and dashboard layouts with:
 
@@ -1404,11 +1406,11 @@ Create public and dashboard layouts with:
 - employer nav: dashboard, companii, joburi, aplicari, mesaje
 - admin nav: dashboard, utilizatori, companii, joburi
 
-- [ ] **Step 4: Apply visual system**
+- [x] **Step 4: Apply visual system**
 
 Use Tailwind classes in a restrained professional style: clean typography, high contrast, clear forms, status badges, compact dashboards, responsive tables/cards. Avoid decorative landing-page sections; keep the app action-oriented.
 
-- [ ] **Step 5: Run responsive/browser verification**
+- [x] **Step 5: Run responsive/browser verification**
 
 Run local server:
 
@@ -1427,7 +1429,7 @@ Open and inspect:
 
 Expected: no broken layouts on desktop and mobile widths; navigation matches role.
 
-- [ ] **Step 6: Run automated verification**
+- [x] **Step 6: Run automated verification**
 
 ```bash
 php artisan test tests/Feature/NavigationTest.php
@@ -1437,7 +1439,7 @@ php artisan test
 
 Expected: navigation tests, frontend build, and full test suite pass.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add resources tests
@@ -1450,79 +1452,22 @@ git commit -m "feat: polish marketplace interface"
 
 **Owner:** Deployment subagent  
 **Dependencies:** Task 0 initially; final update after Tasks 9 and 10  
+**Status Note:** Deployment documentation has been refreshed after notifications and UI work landed.
 **Files:**
 - Create: `/Users/viorel/Desktop/HireMe/docs/deployment/hostinger-cloud-startup.md`
 - Modify: `/Users/viorel/Desktop/HireMe/.env.example`
 - Modify: `/Users/viorel/Desktop/HireMe/README.md`
 - Test: manual command checklist in docs
 
-- [ ] **Step 1: Write deployment documentation**
+- [x] **Step 1: Write deployment documentation**
 
-Create `/Users/viorel/Desktop/HireMe/docs/deployment/hostinger-cloud-startup.md` with:
+Create or update `/Users/viorel/Desktop/HireMe/docs/deployment/hostinger-cloud-startup.md`; that file is the source of truth for Hostinger Cloud Startup deployment instructions. Keep the guide focused on Hostinger Cloud Startup requirements, production environment variables, web root and file layout safety, release commands, smoke checks, and final refresh notes. Do not duplicate the full guide content in this plan, so the plan cannot drift from the deployment document.
 
-```markdown
-# Hostinger Cloud Startup Deployment
-
-## Required Services
-
-- PHP version supported by the Laravel app
-- MySQL database
-- Composer
-- Node.js for Vite build
-- SMTP mailbox or transactional SMTP credentials
-- SSH or Git deployment access
-
-## Production Environment
-
-Set these variables in `.env`:
-
-- `APP_ENV=production`
-- `APP_DEBUG=false`
-- `APP_URL=https://your-domain.example`
-- `DB_CONNECTION=mysql`
-- `DB_HOST=...`
-- `DB_PORT=3306`
-- `DB_DATABASE=...`
-- `DB_USERNAME=...`
-- `DB_PASSWORD=...`
-- `MAIL_MAILER=smtp`
-- `MAIL_HOST=...`
-- `MAIL_PORT=587`
-- `MAIL_USERNAME=...`
-- `MAIL_PASSWORD=...`
-- `MAIL_ENCRYPTION=tls`
-- `FILESYSTEM_DISK=local`
-
-## Release Commands
-
-```bash
-composer install --no-dev --optimize-autoloader
-npm ci
-npm run build
-php artisan migrate --force
-php artisan storage:link
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-```
-
-## Smoke Checks
-
-- homepage loads
-- `/jobs` loads
-- registration works
-- email verification sends
-- CV upload works
-- employer can publish a job
-- candidate can apply
-- message notification sends
-```
-
-- [ ] **Step 2: Update `.env.example`**
+- [x] **Step 2: Update `.env.example`**
 
 Ensure `.env.example` contains database, mail, filesystem, app URL, and queue-related variables with safe example values.
 
-- [ ] **Step 3: Update `README.md`**
+- [x] **Step 3: Update `README.md`**
 
 Document local setup:
 
@@ -1536,7 +1481,7 @@ npm run dev
 php artisan serve
 ```
 
-- [ ] **Step 4: Run docs verification**
+- [x] **Step 4: Run docs verification**
 
 Run:
 
@@ -1548,12 +1493,16 @@ rg -n "APP_DEBUG=false|php artisan migrate --force|npm run build" docs/deploymen
 
 Expected: all commands succeed and key deployment instructions are present.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add .env.example README.md docs/deployment
 git commit -m "docs: add hostinger deployment guide"
 ```
+
+- [x] **Step 6: Final deployment refresh after Tasks 9 and 10**
+
+This refresh must update mail, queue, notifications, and UI smoke checks after those tasks land.
 
 ---
 
@@ -1565,7 +1514,7 @@ git commit -m "docs: add hostinger deployment guide"
 - Modify only bugfix files required by failed verification
 - Create: `/Users/viorel/Desktop/HireMe/docs/release/v1-verification.md`
 
-- [ ] **Step 1: Run full automated suite**
+- [x] **Step 1: Run full automated suite**
 
 Run:
 
@@ -1577,7 +1526,7 @@ npm run build
 
 Expected: all tests pass and production assets build.
 
-- [ ] **Step 2: Run migrations from scratch**
+- [x] **Step 2: Run migrations from scratch**
 
 Run:
 
@@ -1587,7 +1536,7 @@ php artisan migrate:fresh --seed
 
 Expected: migrations and seeders complete without errors.
 
-- [ ] **Step 3: Run local manual smoke test**
+- [x] **Step 3: Run local manual smoke test**
 
 Run:
 
@@ -1610,7 +1559,7 @@ Manually verify:
 - conversation and message send
 - email notification captured by local mail/log driver
 
-- [ ] **Step 4: Record verification results**
+- [x] **Step 4: Record verification results**
 
 Create `/Users/viorel/Desktop/HireMe/docs/release/v1-verification.md`:
 
@@ -1645,7 +1594,7 @@ Date: 2026-05-28
 No launch-blocking issues found.
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add .
