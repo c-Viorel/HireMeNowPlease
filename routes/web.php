@@ -1,6 +1,8 @@
 <?php
 
 use App\Enums\UserRole;
+use App\Http\Controllers\Candidate\DashboardController as CandidateDashboardController;
+use App\Http\Controllers\Candidate\ProfileController as CandidateProfileController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\JobController;
 use App\Http\Controllers\ProfileController;
@@ -21,9 +23,11 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/candidate/dashboard', fn () => view('dashboard'))
-        ->middleware('role:candidate')
-        ->name('candidate.dashboard');
+    Route::prefix('candidate')->name('candidate.')->middleware('role:candidate')->group(function () {
+        Route::get('/dashboard', CandidateDashboardController::class)->name('dashboard');
+        Route::get('/profile', [CandidateProfileController::class, 'edit'])->name('profile.edit');
+        Route::post('/profile', [CandidateProfileController::class, 'update'])->name('profile.update');
+    });
 
     Route::get('/employer/dashboard', fn () => view('dashboard'))
         ->middleware('role:employer')

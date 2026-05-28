@@ -18,7 +18,7 @@ Mark each top-level task complete only after its tests pass and its commit exist
 - [x] Task 1: Domain Schema, Models, Enums, Factories
 - [x] Task 2: Authentication, Roles, Email Verification, Access Control
 - [x] Task 3: Public Site And Job Board
-- [ ] Task 4: Candidate Portal
+- [x] Task 4: Candidate Portal
 - [ ] Task 5: Employer Portal
 - [ ] Task 6: Applications, Pipeline Statuses, Shortlist
 - [ ] Task 7: Messaging
@@ -762,7 +762,7 @@ git commit -m "feat: add public job board"
 - Modify: `/Users/viorel/Desktop/HireMe/routes/web.php`
 - Test: `/Users/viorel/Desktop/HireMe/tests/Feature/CandidatePortalTest.php`
 
-- [ ] **Step 1: Write failing candidate profile tests**
+- [x] **Step 1: Write failing candidate profile tests**
 
 ```php
 it('lets a candidate update their profile and upload a cv', function () {
@@ -787,7 +787,7 @@ it('lets a candidate update their profile and upload a cv', function () {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
 
 Run:
 
@@ -797,7 +797,7 @@ php artisan test tests/Feature/CandidatePortalTest.php
 
 Expected: FAIL because candidate portal routes/controllers are missing.
 
-- [ ] **Step 3: Implement request validation**
+- [x] **Step 3: Implement request validation**
 
 `CandidateProfileRequest` rules:
 
@@ -812,11 +812,11 @@ return [
 ];
 ```
 
-- [ ] **Step 4: Implement candidate profile controller**
+- [x] **Step 4: Implement candidate profile controller**
 
 Store CVs under `cvs/{user_id}` on the default disk, convert comma-separated skills to JSON array, and use `updateOrCreate(['user_id' => auth()->id()], [...])`.
 
-- [ ] **Step 5: Add candidate routes**
+- [x] **Step 5: Add candidate routes**
 
 ```php
 Route::middleware(['auth', 'verified', 'role:candidate'])->prefix('candidate')->name('candidate.')->group(function () {
@@ -826,11 +826,11 @@ Route::middleware(['auth', 'verified', 'role:candidate'])->prefix('candidate')->
 });
 ```
 
-- [ ] **Step 6: Build views**
+- [x] **Step 6: Build views**
 
 Dashboard shows profile completion, recent applications, and recent conversations. Profile view includes the validated fields and current CV link when present.
 
-- [ ] **Step 7: Run verification**
+- [x] **Step 7: Run verification**
 
 Run:
 
@@ -841,7 +841,7 @@ php artisan test
 
 Expected: candidate portal tests pass.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add app routes resources tests
