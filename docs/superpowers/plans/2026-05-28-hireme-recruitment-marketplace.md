@@ -25,7 +25,7 @@ Mark each top-level task complete only after its tests pass and its commit exist
 - [ ] Task 8: Admin Panel
 - [ ] Task 9: Notifications And Mail
 - [ ] Task 10: UI Shell, Responsive Polish, Navigation
-- [ ] Task 11: Deployment And Hostinger Readiness
+- [x] Task 11: Deployment And Hostinger Readiness
 - [ ] Task 12: End-To-End Verification Pass
 
 ## Dependency Map
@@ -1458,7 +1458,7 @@ git commit -m "feat: polish marketplace interface"
 - Modify: `/Users/viorel/Desktop/HireMe/README.md`
 - Test: manual command checklist in docs
 
-- [ ] **Step 1: Write deployment documentation**
+- [x] **Step 1: Write deployment documentation**
 
 Create `/Users/viorel/Desktop/HireMe/docs/deployment/hostinger-cloud-startup.md` with:
 
@@ -1520,11 +1520,11 @@ php artisan view:cache
 - message notification sends
 ```
 
-- [ ] **Step 2: Update `.env.example`**
+- [x] **Step 2: Update `.env.example`**
 
 Ensure `.env.example` contains database, mail, filesystem, app URL, and queue-related variables with safe example values.
 
-- [ ] **Step 3: Update `README.md`**
+- [x] **Step 3: Update `README.md`**
 
 Document local setup:
 
@@ -1538,7 +1538,7 @@ npm run dev
 php artisan serve
 ```
 
-- [ ] **Step 4: Run docs verification**
+- [x] **Step 4: Run docs verification**
 
 Run:
 
@@ -1550,7 +1550,7 @@ rg -n "APP_DEBUG=false|php artisan migrate --force|npm run build" docs/deploymen
 
 Expected: all commands succeed and key deployment instructions are present.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add .env.example README.md docs/deployment
