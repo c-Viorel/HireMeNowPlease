@@ -21,6 +21,7 @@ class Job extends Model
     protected static function booted(): void
     {
         static::deleting(function (Job $job): void {
+            $job->shortlists()->delete();
             $job->applications()->eachById(fn (Application $application) => $application->delete());
         });
     }
