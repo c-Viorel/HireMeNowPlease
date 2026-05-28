@@ -20,6 +20,15 @@ class User extends Authenticatable implements MustVerifyEmail
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
+    protected static function booted(): void
+    {
+        static::deleting(function (User $user): void {
+            $user->applications()->eachById(fn (Application $application) => $application->delete());
+            $user->companies()->eachById(fn (Company $company) => $company->delete());
+            $user->candidateProfile?->delete();
+        });
+    }
+
     /**
      * Get the attributes that should be cast.
      *

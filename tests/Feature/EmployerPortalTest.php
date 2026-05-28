@@ -258,6 +258,57 @@ it('creates unique slugs for duplicate job titles in the same company', function
         ->toBe(['php-developer', 'php-developer-2']);
 });
 
+it('deletes private application cv snapshots when an employer deletes a job', function () {
+    Storage::fake('local');
+
+    $employer = User::factory()->create(['role' => UserRole::Employer, 'email_verified_at' => now()]);
+    $company = Company::factory()->for($employer, 'owner')->create();
+    $job = Job::factory()->for($company)->create();
+    $candidate = User::factory()->create(['role' => UserRole::Candidate, 'email_verified_at' => now()]);
+    $profile = CandidateProfile::factory()->for($candidate, 'user')->create();
+    $snapshotPath = 'applications/1/resume.pdf';
+    Storage::disk('local')->put($snapshotPath, 'captured cv contents');
+
+    Application::create([
+        'job_id' => $job->id,
+        'candidate_id' => $candidate->id,
+        'candidate_profile_id' => $profile->id,
+        'cv_path' => $snapshotPath,
+    ]);
+
+    $this->actingAs($employer)
+        ->delete("/employer/jobs/{$job->id}")
+        ->assertRedirect('/employer/jobs');
+
+    Storage::disk('local')->assertMissing($snapshotPath);
+});
+
+it('deletes private application cv snapshots when an employer deletes a company', function () {
+    Storage::fake('local');
+    Storage::fake('public');
+
+    $employer = User::factory()->create(['role' => UserRole::Employer, 'email_verified_at' => now()]);
+    $company = Company::factory()->for($employer, 'owner')->create();
+    $job = Job::factory()->for($company)->create();
+    $candidate = User::factory()->create(['role' => UserRole::Candidate, 'email_verified_at' => now()]);
+    $profile = CandidateProfile::factory()->for($candidate, 'user')->create();
+    $snapshotPath = 'applications/1/resume.pdf';
+    Storage::disk('local')->put($snapshotPath, 'captured cv contents');
+
+    Application::create([
+        'job_id' => $job->id,
+        'candidate_id' => $candidate->id,
+        'candidate_profile_id' => $profile->id,
+        'cv_path' => $snapshotPath,
+    ]);
+
+    $this->actingAs($employer)
+        ->delete("/employer/companies/{$company->id}")
+        ->assertRedirect('/employer/companies');
+
+    Storage::disk('local')->assertMissing($snapshotPath);
+});
+
 it('shows employer dashboard company, job, application, and message states', function () {
     $employer = User::factory()->create(['role' => UserRole::Employer, 'email_verified_at' => now()]);
 

@@ -164,6 +164,29 @@ it('keeps application cv downloads working after the candidate replaces their pr
         ->assertDownload('old.pdf');
 });
 
+it('deletes captured cv snapshots when applications are deleted', function () {
+    Storage::fake('local');
+
+    $employer = User::factory()->create(['role' => UserRole::Employer, 'email_verified_at' => now()]);
+    $company = Company::factory()->for($employer, 'owner')->create();
+    $job = Job::factory()->for($company)->create();
+    $candidate = User::factory()->create(['role' => UserRole::Candidate, 'email_verified_at' => now()]);
+    $profile = CandidateProfile::factory()->for($candidate, 'user')->create();
+    $snapshotPath = 'applications/1/resume.pdf';
+    Storage::disk('local')->put($snapshotPath, 'captured cv contents');
+    $application = Application::create([
+        'job_id' => $job->id,
+        'candidate_id' => $candidate->id,
+        'candidate_profile_id' => $profile->id,
+        'cv_path' => $snapshotPath,
+        'status' => ApplicationStatus::Submitted,
+    ]);
+
+    $application->delete();
+
+    Storage::disk('local')->assertMissing($snapshotPath);
+});
+
 it('blocks duplicate applications to the same job', function () {
     $candidate = User::factory()->create(['role' => UserRole::Candidate, 'email_verified_at' => now()]);
     $profile = CandidateProfile::factory()->for($candidate, 'user')->create();

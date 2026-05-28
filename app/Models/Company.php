@@ -14,6 +14,13 @@ class Company extends Model
 
     protected $guarded = [];
 
+    protected static function booted(): void
+    {
+        static::deleting(function (Company $company): void {
+            $company->jobs()->eachById(fn (Job $job) => $job->delete());
+        });
+    }
+
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'owner_id');

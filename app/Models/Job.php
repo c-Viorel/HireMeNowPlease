@@ -17,6 +17,13 @@ class Job extends Model
 
     protected $guarded = [];
 
+    protected static function booted(): void
+    {
+        static::deleting(function (Job $job): void {
+            $job->applications()->eachById(fn (Application $application) => $application->delete());
+        });
+    }
+
     protected function casts(): array
     {
         return [
