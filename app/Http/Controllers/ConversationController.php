@@ -18,12 +18,13 @@ class ConversationController extends Controller
         $user = $request->user();
 
         $conversations = Conversation::query()
-            ->with(['application.candidate', 'application.job.company', 'messages.sender'])
+            ->with(['application.candidate', 'application.job.company', 'latestMessage.sender'])
+            ->withMax('messages as last_message_at', 'created_at')
             ->whereHas('application', function ($query) use ($user) {
                 $query->where('candidate_id', $user->id)
                     ->orWhereHas('job.company', fn ($companyQuery) => $companyQuery->where('owner_id', $user->id));
             })
-            ->latest()
+            ->orderByRaw('COALESCE(last_message_at, conversations.created_at) DESC')
             ->paginate(10);
 
         return view('conversations.index', [

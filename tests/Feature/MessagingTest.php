@@ -104,6 +104,49 @@ it('lists only conversations for the authenticated participant', function () {
         ->assertDontSee('Hidden Job');
 });
 
+it('orders conversations by latest message activity', function () {
+    [$candidate, $employer, $olderApplication] = createMessagingApplicationParticipants();
+
+    $newerJob = Job::factory()->for($olderApplication->job->company)->create([
+        'title' => 'Newer Conversation Job',
+        'status' => JobStatus::Published,
+    ]);
+    $newerApplication = Application::create([
+        'job_id' => $newerJob->id,
+        'candidate_id' => $candidate->id,
+        'candidate_profile_id' => $olderApplication->candidate_profile_id,
+        'status' => ApplicationStatus::Submitted,
+    ]);
+
+    $baseTime = now();
+
+    $this->travelTo($baseTime->copy()->subMinutes(10));
+    $olderConversation = Conversation::create(['application_id' => $olderApplication->id]);
+
+    $this->travelTo($baseTime->copy()->subMinutes(5));
+    $newerConversation = Conversation::create(['application_id' => $newerApplication->id]);
+    Message::create([
+        'conversation_id' => $newerConversation->id,
+        'sender_id' => $employer->id,
+        'body' => 'Earlier message on newer conversation',
+    ]);
+
+    $this->travelTo($baseTime);
+    Message::create([
+        'conversation_id' => $olderConversation->id,
+        'sender_id' => $candidate->id,
+        'body' => 'Newest message on older conversation',
+    ]);
+    $this->travelBack();
+
+    $this->actingAs($employer)->get('/conversations')
+        ->assertOk()
+        ->assertSeeInOrder([
+            'Newest message on older conversation',
+            'Earlier message on newer conversation',
+        ]);
+});
+
 it('shows a participant conversation and marks received messages as read', function () {
     [$candidate, $employer, $application] = createMessagingApplicationParticipants();
     $conversation = Conversation::create(['application_id' => $application->id]);

@@ -10,7 +10,7 @@
                     @forelse ($conversations as $conversation)
                         @php
                             $application = $conversation->application;
-                            $latestMessage = $conversation->messages->sortByDesc('created_at')->first();
+                            $latestMessage = $conversation->latestMessage;
                         @endphp
 
                         <a href="{{ route('conversations.show', $conversation) }}" class="block px-6 py-5 hover:bg-gray-50">
