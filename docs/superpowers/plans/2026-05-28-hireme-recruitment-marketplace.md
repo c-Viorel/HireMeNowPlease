@@ -15,7 +15,7 @@
 Mark each top-level task complete only after its tests pass and its commit exists.
 
 - [x] Task 0: Bootstrap Laravel Application
-- [ ] Task 1: Domain Schema, Models, Enums, Factories
+- [x] Task 1: Domain Schema, Models, Enums, Factories
 - [ ] Task 2: Authentication, Roles, Email Verification, Access Control
 - [ ] Task 3: Public Site And Job Board
 - [ ] Task 4: Candidate Portal
@@ -176,7 +176,7 @@ git commit -m "chore: bootstrap laravel application"
 - Create: `/Users/viorel/Desktop/HireMe/database/factories/JobFactory.php`
 - Create: `/Users/viorel/Desktop/HireMe/tests/Feature/DomainSchemaTest.php`
 
-- [ ] **Step 1: Write failing schema relationship tests**
+- [x] **Step 1: Write failing schema relationship tests**
 
 Create `/Users/viorel/Desktop/HireMe/tests/Feature/DomainSchemaTest.php`:
 
@@ -236,7 +236,7 @@ it('creates the core candidate employer job application graph', function () {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run:
 
@@ -246,7 +246,7 @@ php artisan test tests/Feature/DomainSchemaTest.php
 
 Expected: FAIL because enums/models/migrations do not exist yet.
 
-- [ ] **Step 3: Create enums**
+- [x] **Step 3: Create enums**
 
 Create these enum files:
 
@@ -321,7 +321,7 @@ enum WorkplaceType: string
 }
 ```
 
-- [ ] **Step 4: Create migrations**
+- [x] **Step 4: Create migrations**
 
 Use Artisan:
 
@@ -439,7 +439,7 @@ Schema::create('messages', function (Blueprint $table) {
 });
 ```
 
-- [ ] **Step 5: Implement model casts and relationships**
+- [x] **Step 5: Implement model casts and relationships**
 
 Add casts and relationships matching the tests:
 
@@ -463,7 +463,7 @@ public function companies(): HasMany
 
 Use equivalent `belongsTo`, `hasMany`, and `hasOne` relations for all new models.
 
-- [ ] **Step 6: Add factories**
+- [x] **Step 6: Add factories**
 
 Factories must create valid objects with default enum values. Example for `JobFactory`:
 
@@ -485,7 +485,7 @@ public function definition(): array
 }
 ```
 
-- [ ] **Step 7: Run verification**
+- [x] **Step 7: Run verification**
 
 Run:
 
@@ -496,7 +496,7 @@ php artisan test
 
 Expected: domain schema test and existing tests pass.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add app database tests
