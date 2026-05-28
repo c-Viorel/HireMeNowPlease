@@ -4,7 +4,7 @@ This guide documents the initial V1-ready deployment path for HireMe on Hostinge
 
 ## Required Services
 
-- PHP version supported by the Laravel app
+- PHP 8.3+ with the Laravel-required extensions enabled
 - MySQL database
 - Composer
 - Node.js for Vite build
@@ -43,9 +43,17 @@ Set these variables in `.env`:
 - `MAIL_FROM_NAME="${APP_NAME}"`
 - `FILESYSTEM_DISK=local`
 
-Keep `.env` out of version control and create the production `APP_KEY` with `php artisan key:generate` before caching configuration.
+Keep `.env` out of version control. Generate `APP_KEY` once during first production setup with `php artisan key:generate --force`; do not regenerate `APP_KEY` on an existing production install unless intentionally rotating keys with a rollback plan.
+
+## Web Root / File Layout
+
+- Configure the domain document root to Laravel's `public/` directory when Hostinger allows it.
+- If Hostinger requires `public_html`, keep Laravel application files outside the public web root and make `public_html` serve the contents of Laravel `public/` using Hostinger-supported layout/rewrite.
+- Before smoke testing, verify `/.env`, `/composer.json`, and `/storage/logs/laravel.log` are not publicly accessible.
 
 ## Release Commands
+
+Use composer2 instead of composer on Hostinger accounts where Composer 1 is the default alias.
 
 Run these commands from the deployed application directory after code and environment variables are in place:
 
