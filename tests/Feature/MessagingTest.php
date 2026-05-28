@@ -147,6 +147,32 @@ it('orders conversations by latest message activity', function () {
         ]);
 });
 
+it('previews the newest message by created at instead of highest id', function () {
+    [$candidate, $employer, $application] = createMessagingApplicationParticipants();
+    $conversation = Conversation::create(['application_id' => $application->id]);
+
+    Message::create([
+        'conversation_id' => $conversation->id,
+        'sender_id' => $candidate->id,
+        'body' => 'Newest by created at',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    Message::create([
+        'conversation_id' => $conversation->id,
+        'sender_id' => $employer->id,
+        'body' => 'Highest id but older',
+        'created_at' => now()->subHour(),
+        'updated_at' => now()->subHour(),
+    ]);
+
+    $this->actingAs($employer)->get('/conversations')
+        ->assertOk()
+        ->assertSee('Newest by created at')
+        ->assertDontSee('Highest id but older');
+});
+
 it('shows a participant conversation and marks received messages as read', function () {
     [$candidate, $employer, $application] = createMessagingApplicationParticipants();
     $conversation = Conversation::create(['application_id' => $application->id]);
