@@ -20,7 +20,7 @@ Mark each top-level task complete only after its tests pass and its commit exist
 - [x] Task 3: Public Site And Job Board
 - [x] Task 4: Candidate Portal
 - [x] Task 5: Employer Portal
-- [ ] Task 6: Applications, Pipeline Statuses, Shortlist
+- [x] Task 6: Applications, Pipeline Statuses, Shortlist
 - [ ] Task 7: Messaging
 - [ ] Task 8: Admin Panel
 - [ ] Task 9: Notifications And Mail
@@ -970,7 +970,7 @@ git commit -m "feat: add employer portal"
 - Create: `/Users/viorel/Desktop/HireMe/resources/views/employer/applications/show.blade.php`
 - Test: `/Users/viorel/Desktop/HireMe/tests/Feature/ApplicationWorkflowTest.php`
 
-- [ ] **Step 1: Write failing workflow tests**
+- [x] **Step 1: Write failing workflow tests**
 
 ```php
 it('lets a verified candidate apply once and lets employer update status', function () {
@@ -997,7 +997,7 @@ it('lets a verified candidate apply once and lets employer update status', funct
 });
 ```
 
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
 
 Run:
 
@@ -1007,23 +1007,23 @@ php artisan test tests/Feature/ApplicationWorkflowTest.php
 
 Expected: FAIL because application routes/controllers are missing.
 
-- [ ] **Step 3: Implement candidate application creation**
+- [x] **Step 3: Implement candidate application creation**
 
 Candidates must be verified, have a candidate profile, and cannot apply twice to the same job. Store `candidate_profile_id`, message, current CV path, and initial status `submitted`.
 
-- [ ] **Step 4: Implement employer application management**
+- [x] **Step 4: Implement employer application management**
 
 Employers may view and update only applications for jobs owned by their companies. Status update accepts `viewed`, `shortlisted`, `interview`, `rejected`, `accepted`.
 
-- [ ] **Step 5: Implement shortlist**
+- [x] **Step 5: Implement shortlist**
 
 Shortlisting creates or updates `shortlists` and sets the application status to `shortlisted` when the shortlist action comes from an application.
 
-- [ ] **Step 6: Add routes and views**
+- [x] **Step 6: Add routes and views**
 
 Add candidate application routes under `/candidate/applications`; employer application routes under `/employer/applications`; add apply form to public job detail page.
 
-- [ ] **Step 7: Run verification**
+- [x] **Step 7: Run verification**
 
 Run:
 
@@ -1034,7 +1034,7 @@ php artisan test
 
 Expected: application workflow tests pass.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add app routes resources tests

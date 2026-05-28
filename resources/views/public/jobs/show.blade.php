@@ -56,11 +56,48 @@
 
                 <aside class="h-fit rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
                     <h2 class="text-lg font-semibold text-slate-950">Aplica pentru rol</h2>
-                    <p class="mt-2 text-sm text-slate-600">Creeaza un cont sau intra in contul tau pentru a trimite candidatura cand formularul de aplicare este disponibil.</p>
 
                     @auth
-                        <a href="{{ route('dashboard') }}" class="mt-5 inline-flex w-full items-center justify-center rounded-md bg-emerald-700 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2">Aplică</a>
+                        @if (auth()->user()->role === \App\Enums\UserRole::Candidate)
+                            @if (! auth()->user()->hasVerifiedEmail())
+                                <p class="mt-2 text-sm text-slate-600">Verifica adresa de email inainte sa trimiti candidatura.</p>
+                                <a href="{{ route('verification.notice') }}" class="mt-5 inline-flex w-full items-center justify-center rounded-md bg-emerald-700 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2">Verifica email</a>
+                            @elseif (! auth()->user()->candidateProfile)
+                                <p class="mt-2 text-sm text-slate-600">Completeaza profilul de candidat si incarca CV-ul curent inainte sa aplici.</p>
+                                <a href="{{ route('candidate.profile.edit') }}" class="mt-5 inline-flex w-full items-center justify-center rounded-md bg-emerald-700 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2">Completeaza profilul</a>
+                            @elseif ($job->applications()->where('candidate_id', auth()->id())->exists())
+                                <p class="mt-2 text-sm text-slate-600">Ai aplicat deja la acest rol. Poti urmari statusul candidaturii in dashboard.</p>
+                                <a href="{{ route('candidate.applications.index') }}" class="mt-5 inline-flex w-full items-center justify-center rounded-md bg-emerald-700 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2">Vezi aplicari</a>
+                            @else
+                                <p class="mt-2 text-sm text-slate-600">Trimite candidatura cu profilul tau si CV-ul curent.</p>
+
+                                <form method="POST" action="{{ route('jobs.apply', [$job->company, $job]) }}" class="mt-5 space-y-4">
+                                    @csrf
+
+                                    <div>
+                                        <label for="message" class="text-sm font-medium text-slate-800">Mesaj pentru angajator</label>
+                                        <textarea id="message" name="message" rows="5" class="mt-2 w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-emerald-600 focus:ring-emerald-600" maxlength="2000">{{ old('message') }}</textarea>
+                                        @error('message')
+                                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+
+                                    @error('candidate_profile')
+                                        <p class="text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                    @error('job')
+                                        <p class="text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+
+                                    <button type="submit" class="inline-flex w-full items-center justify-center rounded-md bg-emerald-700 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2">Trimite candidatura</button>
+                                </form>
+                            @endif
+                        @else
+                            <p class="mt-2 text-sm text-slate-600">Aplicarea este disponibila doar pentru conturile de candidat.</p>
+                            <a href="{{ route('dashboard') }}" class="mt-5 inline-flex w-full items-center justify-center rounded-md bg-slate-950 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-700 focus:ring-offset-2">Inapoi la dashboard</a>
+                        @endif
                     @else
+                        <p class="mt-2 text-sm text-slate-600">Intra in cont sau creeaza un cont de candidat pentru a trimite candidatura.</p>
                         <div class="mt-5 grid gap-3">
                             <a href="{{ route('login') }}" class="inline-flex w-full items-center justify-center rounded-md bg-emerald-700 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2">Aplică</a>
                             <a href="{{ route('register') }}" class="inline-flex w-full items-center justify-center rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-100">Creeaza cont</a>

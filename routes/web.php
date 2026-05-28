@@ -1,11 +1,14 @@
 <?php
 
 use App\Enums\UserRole;
+use App\Http\Controllers\Candidate\ApplicationController as CandidateApplicationController;
 use App\Http\Controllers\Candidate\DashboardController as CandidateDashboardController;
 use App\Http\Controllers\Candidate\ProfileController as CandidateProfileController;
+use App\Http\Controllers\Employer\ApplicationController as EmployerApplicationController;
 use App\Http\Controllers\Employer\CompanyController as EmployerCompanyController;
 use App\Http\Controllers\Employer\DashboardController as EmployerDashboardController;
 use App\Http\Controllers\Employer\JobController as EmployerJobController;
+use App\Http\Controllers\Employer\ShortlistController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\JobController;
 use App\Http\Controllers\ProfileController;
@@ -16,6 +19,10 @@ Route::get('/jobs', [JobController::class, 'index'])->name('jobs.index');
 Route::get('/companies/{company:slug}/jobs/{job:slug}', [JobController::class, 'show'])
     ->scopeBindings()
     ->name('jobs.show');
+Route::post('/companies/{company:slug}/jobs/{job:slug}/apply', [CandidateApplicationController::class, 'store'])
+    ->middleware(['auth', 'verified', 'role:candidate'])
+    ->scopeBindings()
+    ->name('jobs.apply');
 
 Route::get('/dashboard', function () {
     return match (auth()->user()->role) {
@@ -28,6 +35,7 @@ Route::get('/dashboard', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('candidate')->name('candidate.')->middleware('role:candidate')->group(function () {
         Route::get('/dashboard', CandidateDashboardController::class)->name('dashboard');
+        Route::get('/applications', [CandidateApplicationController::class, 'index'])->name('applications.index');
         Route::get('/profile', [CandidateProfileController::class, 'edit'])->name('profile.edit');
         Route::post('/profile', [CandidateProfileController::class, 'update'])->name('profile.update');
         Route::get('/profile/cv', [CandidateProfileController::class, 'downloadCv'])->name('profile.cv');
@@ -35,6 +43,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::prefix('employer')->name('employer.')->middleware('role:employer')->group(function () {
         Route::get('/dashboard', EmployerDashboardController::class)->name('dashboard');
+        Route::get('/applications', [EmployerApplicationController::class, 'index'])->name('applications.index');
+        Route::get('/applications/{application}', [EmployerApplicationController::class, 'show'])->name('applications.show');
+        Route::patch('/applications/{application}/status', [EmployerApplicationController::class, 'updateStatus'])->name('applications.status');
+        Route::post('/applications/{application}/shortlist', [ShortlistController::class, 'store'])->name('applications.shortlist');
         Route::resource('companies', EmployerCompanyController::class);
         Route::resource('jobs', EmployerJobController::class);
     });
