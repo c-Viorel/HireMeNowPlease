@@ -23,7 +23,7 @@ Mark each top-level task complete only after its tests pass and its commit exist
 - [x] Task 6: Applications, Pipeline Statuses, Shortlist
 - [x] Task 7: Messaging
 - [x] Task 8: Admin Panel
-- [ ] Task 9: Notifications And Mail
+- [x] Task 9: Notifications And Mail
 - [ ] Task 10: UI Shell, Responsive Polish, Navigation
 - [ ] Task 11: Deployment And Hostinger Readiness
 - [ ] Task 12: End-To-End Verification Pass
@@ -1259,7 +1259,7 @@ git commit -m "feat: add admin moderation panel"
 - Modify: message controller
 - Test: `/Users/viorel/Desktop/HireMe/tests/Feature/NotificationTest.php`
 
-- [ ] **Step 1: Write failing notification tests**
+- [x] **Step 1: Write failing notification tests**
 
 ```php
 function createCandidateEmployerAndPublishedJob(): array
@@ -1311,7 +1311,7 @@ it('notifies candidate when application status changes', function () {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
 
 Run:
 
@@ -1321,11 +1321,11 @@ php artisan test tests/Feature/NotificationTest.php
 
 Expected: FAIL because notification classes are missing.
 
-- [ ] **Step 3: Implement notifications**
+- [x] **Step 3: Implement notifications**
 
 Each notification should return `['mail', 'database']` from `via()`. Email copy must be concise and include a link to the relevant dashboard/application/conversation route.
 
-- [ ] **Step 4: Trigger notifications**
+- [x] **Step 4: Trigger notifications**
 
 Send:
 
@@ -1333,7 +1333,7 @@ Send:
 - `ApplicationStatusChangedNotification` to candidate after status change.
 - `NewMessageNotification` to the other conversation participant after message creation.
 
-- [ ] **Step 5: Run verification**
+- [x] **Step 5: Run verification**
 
 Run:
 
@@ -1344,7 +1344,7 @@ php artisan test
 
 Expected: notification tests pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add app tests

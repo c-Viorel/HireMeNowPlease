@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Employer;
 use App\Enums\ApplicationStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Application;
+use App\Notifications\ApplicationStatusChangedNotification;
 use App\Support\Shortlists;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -55,10 +56,17 @@ class ApplicationController extends Controller
             'status' => ['required', Rule::in($this->statusValues())],
         ]);
 
-        $application->update(['status' => $validated['status']]);
+        $application->fill(['status' => $validated['status']]);
+        $statusChanged = $application->isDirty('status');
+        $application->save();
 
         if ($validated['status'] === ApplicationStatus::Shortlisted->value) {
             Shortlists::createForApplication($application);
+        }
+
+        if ($statusChanged) {
+            $application->loadMissing('candidate');
+            $application->candidate->notify(ApplicationStatusChangedNotification::fromApplication($application));
         }
 
         return back()->with('status', 'application-status-updated');

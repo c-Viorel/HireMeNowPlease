@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ApplicationRequest;
 use App\Models\Company;
 use App\Models\Job;
+use App\Notifications\NewApplicationNotification;
 use App\Support\ApplicationSubmissions;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -63,6 +64,9 @@ class ApplicationController extends Controller
             Storage::disk('local')->copy($profile->cv_path, $snapshotPath);
             $application->update(['cv_path' => $snapshotPath]);
         }
+
+        $job->loadMissing('company.owner');
+        $job->company->owner->notify(NewApplicationNotification::fromApplication($application));
 
         return redirect()->route('candidate.applications.index')
             ->with('status', 'application-submitted');
