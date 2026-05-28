@@ -2,6 +2,7 @@
 
 use App\Enums\JobStatus;
 use App\Enums\UserRole;
+use App\Http\Requests\CompanyRequest;
 use App\Models\Application;
 use App\Models\CandidateProfile;
 use App\Models\Company;
@@ -120,6 +121,65 @@ it('rejects invalid company logos and job enum or status values', function () {
         'status' => 'closed',
     ])->assertRedirect('/employer/jobs/create')
         ->assertSessionHasErrors(['employment_type', 'workplace_type', 'salary_max', 'status']);
+});
+
+it('rejects svg company logo uploads', function () {
+    Storage::fake('public');
+    $employer = User::factory()->create(['role' => UserRole::Employer, 'email_verified_at' => now()]);
+
+    $this->actingAs($employer)->from('/employer/companies/create')->post('/employer/companies', [
+        'name' => 'Vector Recruiting',
+        'logo' => UploadedFile::fake()->createWithContent(
+            'logo.svg',
+            '<svg xmlns="http://www.w3.org/2000/svg"><script>alert("x")</script></svg>'
+        ),
+    ])->assertRedirect('/employer/companies/create')
+        ->assertSessionHasErrors('logo');
+
+    $this->assertDatabaseMissing('companies', [
+        'name' => 'Vector Recruiting',
+    ]);
+});
+
+it('restricts company logo validation to raster image formats', function () {
+    expect((new CompanyRequest())->rules()['logo'])
+        ->toContain('mimes:jpg,jpeg,png,webp');
+});
+
+it('creates unique slugs for duplicate company names', function () {
+    $employer = User::factory()->create(['role' => UserRole::Employer, 'email_verified_at' => now()]);
+
+    $this->actingAs($employer)->post('/employer/companies', [
+        'name' => 'Acme Recruiting',
+    ])->assertRedirect('/employer/companies');
+
+    $this->actingAs($employer)->post('/employer/companies', [
+        'name' => 'Acme Recruiting',
+    ])->assertRedirect('/employer/companies');
+
+    expect(Company::where('name', 'Acme Recruiting')->pluck('slug')->all())
+        ->toBe(['acme-recruiting', 'acme-recruiting-2']);
+});
+
+it('creates unique slugs for duplicate job titles in the same company', function () {
+    $employer = User::factory()->create(['role' => UserRole::Employer, 'email_verified_at' => now()]);
+    $company = Company::factory()->for($employer, 'owner')->create();
+    $payload = [
+        'company_id' => $company->id,
+        'title' => 'PHP Developer',
+        'description' => 'Build Laravel apps.',
+        'location' => 'Remote',
+        'employment_type' => 'full_time',
+        'workplace_type' => 'remote',
+        'experience_level' => 'mid',
+        'status' => 'draft',
+    ];
+
+    $this->actingAs($employer)->post('/employer/jobs', $payload)->assertRedirect('/employer/jobs');
+    $this->actingAs($employer)->post('/employer/jobs', $payload)->assertRedirect('/employer/jobs');
+
+    expect(Job::where('company_id', $company->id)->where('title', 'PHP Developer')->pluck('slug')->all())
+        ->toBe(['php-developer', 'php-developer-2']);
 });
 
 it('shows employer dashboard company, job, application, and message states', function () {

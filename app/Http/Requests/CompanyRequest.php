@@ -21,7 +21,7 @@ class CompanyRequest extends FormRequest
             'description' => ['nullable', 'string'],
             'website' => ['nullable', 'url', 'max:255'],
             'location' => ['nullable', 'string', 'max:255'],
-            'logo' => ['nullable', 'image', 'max:2048'],
+            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ];
     }
 }
