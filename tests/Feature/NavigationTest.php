@@ -45,6 +45,19 @@ it('shows admin navigation only to admins', function () {
         ->assertDontSee('Publica job');
 });
 
+it('connects the dashboard mobile navigation toggle to its menu', function () {
+    $candidate = User::factory()->create([
+        'role' => UserRole::Candidate,
+        'email_verified_at' => now(),
+    ]);
+
+    $this->actingAs($candidate)->get('/candidate/dashboard')
+        ->assertOk()
+        ->assertSee(':aria-expanded="open.toString()"', false)
+        ->assertSee('aria-controls="dashboard-mobile-menu"', false)
+        ->assertSee('id="dashboard-mobile-menu"', false);
+});
+
 it('shows the public marketplace navigation to guests', function () {
     $this->get('/')
         ->assertOk()

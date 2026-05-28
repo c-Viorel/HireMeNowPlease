@@ -78,7 +78,7 @@
                         </form>
                     </div>
 
-                    <button type="button" @click="open = ! open" class="inline-flex h-10 w-10 items-center justify-center rounded-md border border-slate-300 text-slate-700 lg:hidden" aria-label="Deschide navigatia">
+                    <button type="button" @click="open = ! open" class="inline-flex h-10 w-10 items-center justify-center rounded-md border border-slate-300 text-slate-700 lg:hidden" aria-label="Deschide navigatia" :aria-expanded="open.toString()" aria-controls="dashboard-mobile-menu">
                         <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                             <path x-show="! open" d="M3 5.5h14M3 10h14M3 14.5h14" stroke-linecap="round" />
                             <path x-show="open" d="M5 5l10 10M15 5 5 15" stroke-linecap="round" />
@@ -86,7 +86,7 @@
                     </button>
                 </nav>
 
-                <div x-show="open" x-cloak class="border-t border-slate-200 bg-white lg:hidden">
+                <div id="dashboard-mobile-menu" x-show="open" x-cloak class="border-t border-slate-200 bg-white lg:hidden">
                     <div class="mx-auto max-w-7xl space-y-1 px-4 py-3 sm:px-6">
                         @foreach ($navigation as $item)
                             <a href="{{ $item['href'] }}" @class([
