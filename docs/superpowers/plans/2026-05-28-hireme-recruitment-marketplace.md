@@ -14,7 +14,7 @@
 
 Mark each top-level task complete only after its tests pass and its commit exists.
 
-- [ ] Task 0: Bootstrap Laravel Application
+- [x] Task 0: Bootstrap Laravel Application
 - [ ] Task 1: Domain Schema, Models, Enums, Factories
 - [ ] Task 2: Authentication, Roles, Email Verification, Access Control
 - [ ] Task 3: Public Site And Job Board
