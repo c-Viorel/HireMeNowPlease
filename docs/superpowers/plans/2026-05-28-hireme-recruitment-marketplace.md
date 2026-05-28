@@ -1468,7 +1468,7 @@ Create `/Users/viorel/Desktop/HireMe/docs/deployment/hostinger-cloud-startup.md`
 
 ## Required Services
 
-- PHP version supported by the Laravel app
+- PHP 8.3+ with the Laravel-required extensions enabled
 - MySQL database
 - Composer
 - Node.js for Vite build
@@ -1479,6 +1479,7 @@ Create `/Users/viorel/Desktop/HireMe/docs/deployment/hostinger-cloud-startup.md`
 
 Set these variables in `.env`:
 
+- `APP_KEY=base64:generate-this-on-the-server`
 - `APP_ENV=production`
 - `APP_DEBUG=false`
 - `APP_URL=https://your-domain.example`
@@ -1496,7 +1497,17 @@ Set these variables in `.env`:
 - `MAIL_ENCRYPTION=tls`
 - `FILESYSTEM_DISK=local`
 
+Keep `.env` out of version control. Generate `APP_KEY` once during first production setup with `php artisan key:generate --force`; do not regenerate `APP_KEY` on an existing production install unless intentionally rotating keys with a rollback plan.
+
+## Web Root / File Layout
+
+- Configure the domain document root to Laravel's `public/` directory when Hostinger allows it.
+- If Hostinger requires `public_html`, keep Laravel application files outside the public web root and make `public_html` serve the contents of Laravel `public/` using Hostinger-supported layout/rewrite.
+- Before smoke testing, verify `/.env`, `/composer.json`, and `/storage/logs/laravel.log` are not publicly accessible.
+
 ## Release Commands
+
+Use composer2 instead of composer on Hostinger accounts where Composer 1 is the default alias.
 
 ```bash
 composer install --no-dev --optimize-autoloader
@@ -1557,6 +1568,10 @@ Expected: all commands succeed and key deployment instructions are present.
 git add .env.example README.md docs/deployment
 git commit -m "docs: add hostinger deployment guide"
 ```
+
+- [ ] **Step 6: Final deployment refresh after Tasks 9 and 10**
+
+This refresh must update mail, queue, notifications, and UI smoke checks after those tasks land.
 
 ---
 
