@@ -79,7 +79,7 @@ The final Laravel project should use these responsibility boundaries:
 - Create: `/Users/viorel/Desktop/HireMe/resources/views/layouts/app.blade.php`
 - Test: `/Users/viorel/Desktop/HireMe/tests/Feature/SmokeTest.php`
 
-- [ ] **Step 1: Scaffold Laravel into a temporary directory and merge it into the repo root**
+- [x] **Step 1: Scaffold Laravel into a temporary directory and merge it into the repo root**
 
 Run:
 
@@ -95,7 +95,7 @@ npm install
 
 Expected: Laravel files exist in the current directory, Breeze auth views are installed, and dependency installation completes without errors.
 
-- [ ] **Step 2: Configure local database for tests**
+- [x] **Step 2: Configure local database for tests**
 
 Modify `/Users/viorel/Desktop/HireMe/phpunit.xml` so the testing database uses SQLite in memory:
 
@@ -106,7 +106,7 @@ Modify `/Users/viorel/Desktop/HireMe/phpunit.xml` so the testing database uses S
 
 Expected: tests can run without a local MySQL database.
 
-- [ ] **Step 3: Add a smoke test**
+- [x] **Step 3: Add a smoke test**
 
 Create `/Users/viorel/Desktop/HireMe/tests/Feature/SmokeTest.php`:
 
@@ -124,7 +124,7 @@ it('loads the public homepage', function () {
 });
 ```
 
-- [ ] **Step 4: Run bootstrap verification**
+- [x] **Step 4: Run bootstrap verification**
 
 Run:
 
@@ -136,7 +136,7 @@ npm run build
 
 Expected: smoke test passes and Vite build completes.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add .
