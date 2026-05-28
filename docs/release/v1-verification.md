@@ -4,7 +4,7 @@ Date: 2026-05-28
 
 ## Automated Checks
 
-- `php artisan test`: PASS, 115 tests, 462 assertions
+- `php artisan test`: PASS, 124 tests, 499 assertions
 - `npm run build`: PASS
 - `php artisan migrate:fresh --seed`: PASS
 
@@ -37,5 +37,11 @@ Date: 2026-05-28
 - Notifications: 5
 
 ## Notes
+
+Final global review follow-ups were fixed and re-verified:
+
+- Public jobs are visible/applicable only when published, attached to an approved company, and owned by an active employer.
+- Candidate profile experience is editable through the UI, so profile completion can reach 100%.
+- Private profile CVs and application CV snapshots are cleaned up when related records are deleted.
 
 No launch-blocking issues found.
