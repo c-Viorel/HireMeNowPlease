@@ -219,6 +219,25 @@ it('blocks candidates without a profile from applying', function () {
     expect(Application::count())->toBe(0);
 });
 
+it('blocks inactive candidates from applying', function () {
+    $candidate = User::factory()->create([
+        'role' => UserRole::Candidate,
+        'email_verified_at' => now(),
+        'is_active' => false,
+    ]);
+    CandidateProfile::factory()->for($candidate, 'user')->create();
+    $company = Company::factory()->create();
+    $job = Job::factory()->for($company)->create(['status' => JobStatus::Published]);
+
+    $this->actingAs($candidate)->from(route('jobs.show', [$company, $job]))
+        ->post(route('jobs.apply', [$company, $job]), [
+            'message' => 'I should not be able to apply.',
+        ])->assertRedirect('/login')
+        ->assertSessionHasErrors('email');
+
+    expect(Application::count())->toBe(0);
+});
+
 it('blocks non-owner employers from viewing or updating applications', function () {
     $owner = User::factory()->create(['role' => UserRole::Employer, 'email_verified_at' => now()]);
     $otherEmployer = User::factory()->create(['role' => UserRole::Employer, 'email_verified_at' => now()]);

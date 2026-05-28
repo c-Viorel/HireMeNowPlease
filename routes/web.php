@@ -26,7 +26,7 @@ Route::get('/companies/{company:slug}/jobs/{job:slug}', [JobController::class, '
     ->scopeBindings()
     ->name('jobs.show');
 Route::post('/companies/{company:slug}/jobs/{job:slug}/apply', [CandidateApplicationController::class, 'store'])
-    ->middleware(['auth', 'verified', 'role:candidate'])
+    ->middleware(['auth', 'active', 'verified', 'role:candidate'])
     ->scopeBindings()
     ->name('jobs.apply');
 

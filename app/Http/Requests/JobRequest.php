@@ -4,8 +4,10 @@ namespace App\Http\Requests;
 
 use App\Enums\EmploymentType;
 use App\Enums\WorkplaceType;
+use App\Models\Company;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class JobRequest extends FormRequest
 {
@@ -34,6 +36,26 @@ class JobRequest extends FormRequest
             'salary_min' => ['nullable', 'integer', 'min:0'],
             'salary_max' => ['nullable', 'integer', 'min:0', 'gte:salary_min'],
             'status' => ['required', Rule::in(['draft', 'published'])],
+        ];
+    }
+
+    public function after(): array
+    {
+        return [
+            function (Validator $validator): void {
+                if ($this->input('status') !== 'published' || $validator->errors()->has('company_id')) {
+                    return;
+                }
+
+                $company = Company::query()
+                    ->whereKey($this->integer('company_id'))
+                    ->where('owner_id', $this->user()->id)
+                    ->first();
+
+                if ($company && $company->status !== 'approved') {
+                    $validator->errors()->add('status', 'Only jobs for approved companies can be published.');
+                }
+            },
         ];
     }
 }

@@ -50,6 +50,7 @@ it('lets an employer create a company with a public logo and publish a job', fun
         ->and($company->logo_path)->toStartWith("company-logos/{$company->id}/");
 
     Storage::disk('public')->assertExists($company->logo_path);
+    $company->update(['status' => 'approved']);
 
     $this->actingAs($employer)->post('/employer/jobs', [
         'company_id' => $company->id,
@@ -72,6 +73,81 @@ it('lets an employer create a company with a public logo and publish a job', fun
 
     expect(Job::where('title', 'PHP Developer')->firstOrFail()->published_at)->not->toBeNull();
 });
+
+it('prevents employers from publishing jobs for unapproved companies', function (string $companyStatus) {
+    $employer = User::factory()->create(['role' => UserRole::Employer, 'email_verified_at' => now()]);
+    $company = Company::factory()->for($employer, 'owner')->create(['status' => $companyStatus]);
+
+    $this->actingAs($employer)->from('/employer/jobs/create')->post('/employer/jobs', [
+        'company_id' => $company->id,
+        'title' => 'PHP Developer',
+        'description' => 'Build Laravel apps.',
+        'location' => 'Remote',
+        'employment_type' => 'full_time',
+        'workplace_type' => 'remote',
+        'experience_level' => 'mid',
+        'status' => 'published',
+    ])->assertRedirect('/employer/jobs/create')
+        ->assertSessionHasErrors('status');
+
+    $this->assertDatabaseMissing('jobs', [
+        'company_id' => $company->id,
+        'title' => 'PHP Developer',
+    ]);
+})->with([
+    'pending company' => ['pending'],
+    'blocked company' => ['blocked'],
+]);
+
+it('lets employers create draft jobs for pending companies', function () {
+    $employer = User::factory()->create(['role' => UserRole::Employer, 'email_verified_at' => now()]);
+    $company = Company::factory()->for($employer, 'owner')->create(['status' => 'pending']);
+
+    $this->actingAs($employer)->post('/employer/jobs', [
+        'company_id' => $company->id,
+        'title' => 'Draft PHP Developer',
+        'description' => 'Build Laravel apps.',
+        'location' => 'Remote',
+        'employment_type' => 'full_time',
+        'workplace_type' => 'remote',
+        'experience_level' => 'mid',
+        'status' => 'draft',
+    ])->assertRedirect('/employer/jobs');
+
+    $this->assertDatabaseHas('jobs', [
+        'company_id' => $company->id,
+        'title' => 'Draft PHP Developer',
+        'status' => 'draft',
+    ]);
+});
+
+it('prevents employers from updating jobs to published for unapproved companies', function (string $companyStatus) {
+    $employer = User::factory()->create(['role' => UserRole::Employer, 'email_verified_at' => now()]);
+    $company = Company::factory()->for($employer, 'owner')->create(['status' => $companyStatus]);
+    $job = Job::factory()->for($company)->create([
+        'title' => 'Draft Engineer',
+        'status' => JobStatus::Draft,
+        'published_at' => null,
+    ]);
+
+    $this->actingAs($employer)->from("/employer/jobs/{$job->id}/edit")->patch("/employer/jobs/{$job->id}", [
+        'company_id' => $company->id,
+        'title' => 'Draft Engineer',
+        'description' => $job->description,
+        'location' => $job->location,
+        'employment_type' => $job->employment_type->value,
+        'workplace_type' => $job->workplace_type->value,
+        'experience_level' => $job->experience_level,
+        'status' => 'published',
+    ])->assertRedirect("/employer/jobs/{$job->id}/edit")
+        ->assertSessionHasErrors('status');
+
+    expect($job->fresh()->status)->toBe(JobStatus::Draft)
+        ->and($job->fresh()->published_at)->toBeNull();
+})->with([
+    'pending company' => ['pending'],
+    'blocked company' => ['blocked'],
+]);
 
 it('prevents an employer from creating a job for a company they do not own', function () {
     $employer = User::factory()->create(['role' => UserRole::Employer, 'email_verified_at' => now()]);
