@@ -24,6 +24,7 @@ it('lets a candidate update their profile and upload a cv', function () {
         'location' => 'Bucuresti',
         'headline' => 'Laravel Developer',
         'summary' => 'I build marketplace products.',
+        'experience' => '3 years building marketplace products for SaaS teams.',
         'skills' => 'PHP, Laravel, , MySQL',
         'cv' => UploadedFile::fake()->create('cv.pdf', 256, 'application/pdf'),
     ])->assertRedirect('/candidate/profile');
@@ -36,10 +37,15 @@ it('lets a candidate update their profile and upload a cv', function () {
     $profile = $candidate->fresh()->candidateProfile;
 
     expect($profile->skills)->toBe(['PHP', 'Laravel', 'MySQL'])
+        ->and($profile->experience)->toBe(['3 years building marketplace products for SaaS teams.'])
         ->and($profile->cv_path)->not->toBeNull()
         ->and($profile->cv_path)->toStartWith("cvs/{$candidate->id}/");
 
     Storage::disk('local')->assertExists($profile->cv_path);
+
+    $this->actingAs($candidate->fresh())->get('/candidate/dashboard')
+        ->assertOk()
+        ->assertSee('100%');
 });
 
 it('preserves the current cv when updating without a new upload', function () {

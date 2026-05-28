@@ -1,4 +1,17 @@
 <x-app-layout>
+    @php
+        $experienceText = collect($profile?->experience ?? [])
+            ->map(fn ($item) => is_array($item)
+                ? implode(' - ', array_filter([
+                    $item['title'] ?? null,
+                    $item['company'] ?? null,
+                    isset($item['years']) ? $item['years'].' years' : null,
+                ]))
+                : $item)
+            ->filter()
+            ->implode("\n");
+    @endphp
+
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             {{ __('Candidate Profile') }}
@@ -37,6 +50,12 @@
                         <x-input-label for="summary" :value="__('Summary')" />
                         <textarea id="summary" name="summary" rows="5" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('summary', $profile?->summary) }}</textarea>
                         <x-input-error class="mt-2" :messages="$errors->get('summary')" />
+                    </div>
+
+                    <div>
+                        <x-input-label for="experience" :value="__('Experience')" />
+                        <textarea id="experience" name="experience" rows="5" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('experience', $experienceText) }}</textarea>
+                        <x-input-error class="mt-2" :messages="$errors->get('experience')" />
                     </div>
 
                     <div>

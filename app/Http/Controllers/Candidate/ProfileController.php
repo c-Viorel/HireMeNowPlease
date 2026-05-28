@@ -31,6 +31,11 @@ class ProfileController extends Controller
             'location' => $validated['location'] ?? null,
             'headline' => $validated['headline'] ?? null,
             'summary' => $validated['summary'] ?? null,
+            'experience' => collect(preg_split('/\r\n|\r|\n/', $validated['experience'] ?? '') ?: [])
+                ->map(fn (string $item) => trim($item))
+                ->filter()
+                ->values()
+                ->all(),
             'skills' => collect(explode(',', $validated['skills'] ?? ''))
                 ->map(fn (string $skill) => trim($skill))
                 ->filter()

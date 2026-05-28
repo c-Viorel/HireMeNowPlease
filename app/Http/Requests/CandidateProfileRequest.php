@@ -22,6 +22,7 @@ class CandidateProfileRequest extends FormRequest
             'location' => ['nullable', 'string', 'max:120'],
             'headline' => ['nullable', 'string', 'max:160'],
             'summary' => ['nullable', 'string', 'max:3000'],
+            'experience' => ['nullable', 'string', 'max:5000'],
             'skills' => ['nullable', 'string', 'max:1000'],
             'cv' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:5120'],
         ];
