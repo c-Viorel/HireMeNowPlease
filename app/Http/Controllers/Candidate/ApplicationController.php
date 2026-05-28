@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Candidate;
 
 use App\Enums\ApplicationStatus;
-use App\Enums\JobStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ApplicationRequest;
 use App\Models\Company;
@@ -32,7 +31,14 @@ class ApplicationController extends Controller
 
     public function store(ApplicationRequest $request, Company $company, Job $job): RedirectResponse
     {
-        abort_unless($job->company_id === $company->id && $job->status === JobStatus::Published, 404);
+        abort_unless(
+            Job::query()
+                ->publiclyVisible()
+                ->whereKey($job->id)
+                ->where('company_id', $company->id)
+                ->exists(),
+            404
+        );
 
         $candidate = $request->user();
         $profile = $candidate->candidateProfile;

@@ -38,13 +38,29 @@ function duplicateShortlistQueryException(): QueryException
     );
 }
 
+function applicationWorkflowApprovedCompany(?User $owner = null, array $companyAttributes = [], array $ownerAttributes = []): Company
+{
+    $owner ??= User::factory()->create([
+        'role' => UserRole::Employer,
+        'email_verified_at' => now(),
+        ...$ownerAttributes,
+    ]);
+
+    return Company::factory()
+        ->for($owner, 'owner')
+        ->create([
+            'status' => 'approved',
+            ...$companyAttributes,
+        ]);
+}
+
 it('lets a verified candidate apply once and lets employer update status', function () {
     Storage::fake('local');
     $candidate = User::factory()->create(['role' => UserRole::Candidate, 'email_verified_at' => now()]);
     Storage::disk('local')->put("cvs/{$candidate->id}/demo.pdf", 'private cv contents');
     $profile = CandidateProfile::factory()->for($candidate, 'user')->create(['cv_path' => "cvs/{$candidate->id}/demo.pdf"]);
     $employer = User::factory()->create(['role' => UserRole::Employer, 'email_verified_at' => now()]);
-    $company = Company::factory()->for($employer, 'owner')->create();
+    $company = applicationWorkflowApprovedCompany($employer);
     $job = Job::factory()->for($company)->create(['status' => JobStatus::Published]);
 
     $this->actingAs($candidate)->post(route('jobs.apply', [$company, $job]), [
@@ -78,7 +94,7 @@ it('lets the owning employer download the captured application cv', function () 
         'cv_path' => "cvs/{$candidate->id}/resume.pdf",
     ]);
     $employer = User::factory()->create(['role' => UserRole::Employer, 'email_verified_at' => now()]);
-    $company = Company::factory()->for($employer, 'owner')->create();
+    $company = applicationWorkflowApprovedCompany($employer);
     $job = Job::factory()->for($company)->create(['status' => JobStatus::Published]);
 
     $this->actingAs($candidate)->post(route('jobs.apply', [$company, $job]), [
@@ -143,7 +159,7 @@ it('keeps application cv downloads working after the candidate replaces their pr
         'cv_path' => "cvs/{$candidate->id}/old.pdf",
     ]);
     $employer = User::factory()->create(['role' => UserRole::Employer, 'email_verified_at' => now()]);
-    $company = Company::factory()->for($employer, 'owner')->create();
+    $company = applicationWorkflowApprovedCompany($employer);
     $job = Job::factory()->for($company)->create(['status' => JobStatus::Published]);
 
     $this->actingAs($candidate)->post(route('jobs.apply', [$company, $job]), [
@@ -190,7 +206,7 @@ it('deletes captured cv snapshots when applications are deleted', function () {
 it('blocks duplicate applications to the same job', function () {
     $candidate = User::factory()->create(['role' => UserRole::Candidate, 'email_verified_at' => now()]);
     $profile = CandidateProfile::factory()->for($candidate, 'user')->create();
-    $company = Company::factory()->create();
+    $company = applicationWorkflowApprovedCompany();
     $job = Job::factory()->for($company)->create(['status' => JobStatus::Published]);
 
     Application::create([
@@ -230,7 +246,7 @@ it('converts duplicate application query exceptions into validation errors', fun
 
 it('blocks candidates without a profile from applying', function () {
     $candidate = User::factory()->create(['role' => UserRole::Candidate, 'email_verified_at' => now()]);
-    $company = Company::factory()->create();
+    $company = applicationWorkflowApprovedCompany();
     $job = Job::factory()->for($company)->create(['status' => JobStatus::Published]);
 
     $this->actingAs($candidate)->from(route('jobs.show', [$company, $job]))
@@ -242,6 +258,23 @@ it('blocks candidates without a profile from applying', function () {
     expect(Application::count())->toBe(0);
 });
 
+it('blocks applications to published jobs when the company is blocked or employer is inactive', function (array $companyAttributes, array $ownerAttributes) {
+    $candidate = User::factory()->create(['role' => UserRole::Candidate, 'email_verified_at' => now()]);
+    CandidateProfile::factory()->for($candidate, 'user')->create();
+    $company = applicationWorkflowApprovedCompany(null, $companyAttributes, $ownerAttributes);
+    $job = Job::factory()->for($company)->create(['status' => JobStatus::Published]);
+
+    $this->actingAs($candidate)
+        ->post(route('jobs.apply', [$company, $job]), [
+            'message' => 'This job should no longer accept applications.',
+        ])->assertNotFound();
+
+    expect(Application::count())->toBe(0);
+})->with([
+    'blocked company' => [['status' => 'blocked'], []],
+    'inactive employer' => [[], ['is_active' => false]],
+]);
+
 it('blocks inactive candidates from applying', function () {
     $candidate = User::factory()->create([
         'role' => UserRole::Candidate,
@@ -249,7 +282,7 @@ it('blocks inactive candidates from applying', function () {
         'is_active' => false,
     ]);
     CandidateProfile::factory()->for($candidate, 'user')->create();
-    $company = Company::factory()->create();
+    $company = applicationWorkflowApprovedCompany();
     $job = Job::factory()->for($company)->create(['status' => JobStatus::Published]);
 
     $this->actingAs($candidate)->from(route('jobs.show', [$company, $job]))
@@ -334,8 +367,8 @@ it('treats duplicate shortlist query exceptions as successful idempotent creatio
 it('does not allow applying through the wrong company scoped job route', function () {
     $candidate = User::factory()->create(['role' => UserRole::Candidate, 'email_verified_at' => now()]);
     CandidateProfile::factory()->for($candidate, 'user')->create();
-    $company = Company::factory()->create();
-    $otherCompany = Company::factory()->create();
+    $company = applicationWorkflowApprovedCompany();
+    $otherCompany = applicationWorkflowApprovedCompany();
     $job = Job::factory()->for($company)->create(['status' => JobStatus::Published]);
 
     $this->actingAs($candidate)

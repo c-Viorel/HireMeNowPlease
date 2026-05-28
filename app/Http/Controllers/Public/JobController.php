@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Public;
 
 use App\Enums\EmploymentType;
-use App\Enums\JobStatus;
 use App\Enums\WorkplaceType;
 use App\Http\Controllers\Controller;
 use App\Models\Company;
@@ -26,7 +25,7 @@ class JobController extends Controller
 
         $jobs = Job::query()
             ->with('company')
-            ->where('status', JobStatus::Published)
+            ->publiclyVisible()
             ->when($filters['q'] ?? null, function ($query, string $search): void {
                 $query->where(function ($query) use ($search): void {
                     $query
@@ -65,7 +64,11 @@ class JobController extends Controller
     public function show(Company $company, Job $job): View
     {
         abort_unless(
-            $job->company_id === $company->id && $job->status === JobStatus::Published,
+            Job::query()
+                ->publiclyVisible()
+                ->whereKey($job->id)
+                ->where('company_id', $company->id)
+                ->exists(),
             404
         );
 

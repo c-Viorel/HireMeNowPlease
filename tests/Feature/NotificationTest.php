@@ -19,7 +19,7 @@ function createNotificationCandidateEmployerAndPublishedJob(): array
     $candidate = User::factory()->create(['role' => UserRole::Candidate, 'email_verified_at' => now()]);
     CandidateProfile::factory()->for($candidate, 'user')->create();
     $employer = User::factory()->create(['role' => UserRole::Employer, 'email_verified_at' => now()]);
-    $company = Company::factory()->for($employer, 'owner')->create();
+    $company = Company::factory()->for($employer, 'owner')->create(['status' => 'approved']);
     $job = Job::factory()->for($company)->create(['status' => JobStatus::Published]);
 
     return [$candidate, $employer, $company, $job];
