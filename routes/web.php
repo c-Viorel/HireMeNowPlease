@@ -1,6 +1,10 @@
 <?php
 
 use App\Enums\UserRole;
+use App\Http\Controllers\Admin\CompanyController as AdminCompanyController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\JobController as AdminJobController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Candidate\ApplicationController as CandidateApplicationController;
 use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\Candidate\DashboardController as CandidateDashboardController;
@@ -59,9 +63,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('jobs', EmployerJobController::class);
     });
 
-    Route::get('/admin/dashboard', fn () => view('dashboard'))
-        ->middleware('role:admin')
-        ->name('admin.dashboard');
+    Route::prefix('admin')->name('admin.')->middleware('role:admin')->group(function () {
+        Route::get('/dashboard', AdminDashboardController::class)->name('dashboard');
+        Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+        Route::patch('/users/{user}', [AdminUserController::class, 'update'])->name('users.update');
+        Route::get('/companies', [AdminCompanyController::class, 'index'])->name('companies.index');
+        Route::patch('/companies/{company}', [AdminCompanyController::class, 'update'])->name('companies.update');
+        Route::get('/jobs', [AdminJobController::class, 'index'])->name('jobs.index');
+        Route::patch('/jobs/{job}', [AdminJobController::class, 'update'])->name('jobs.update');
+    });
 });
 
 Route::middleware('auth')->group(function () {

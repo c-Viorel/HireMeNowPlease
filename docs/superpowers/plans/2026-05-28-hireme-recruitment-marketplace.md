@@ -22,7 +22,7 @@ Mark each top-level task complete only after its tests pass and its commit exist
 - [x] Task 5: Employer Portal
 - [x] Task 6: Applications, Pipeline Statuses, Shortlist
 - [x] Task 7: Messaging
-- [ ] Task 8: Admin Panel
+- [x] Task 8: Admin Panel
 - [ ] Task 9: Notifications And Mail
 - [ ] Task 10: UI Shell, Responsive Polish, Navigation
 - [ ] Task 11: Deployment And Hostinger Readiness
@@ -1165,7 +1165,7 @@ git commit -m "feat: add application messaging"
 - Create: `/Users/viorel/Desktop/HireMe/resources/views/admin/jobs/index.blade.php`
 - Test: `/Users/viorel/Desktop/HireMe/tests/Feature/AdminPanelTest.php`
 
-- [ ] **Step 1: Write failing admin tests**
+- [x] **Step 1: Write failing admin tests**
 
 ```php
 it('lets admins moderate companies and jobs', function () {
@@ -1186,7 +1186,7 @@ it('lets admins moderate companies and jobs', function () {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
 
 Run:
 
@@ -1196,11 +1196,11 @@ php artisan test tests/Feature/AdminPanelTest.php
 
 Expected: FAIL because admin routes/controllers are missing.
 
-- [ ] **Step 3: Implement admin controllers**
+- [x] **Step 3: Implement admin controllers**
 
 Dashboard shows counts for users, companies, jobs, applications. User controller toggles `is_active`. Company controller updates status `pending|approved|blocked`. Job controller updates status `pending|published|closed|rejected`.
 
-- [ ] **Step 4: Add admin routes**
+- [x] **Step 4: Add admin routes**
 
 ```php
 Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -1214,7 +1214,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
 });
 ```
 
-- [ ] **Step 5: Add admin seeder**
+- [x] **Step 5: Add admin seeder**
 
 Modify `/Users/viorel/Desktop/HireMe/database/seeders/DatabaseSeeder.php`:
 
@@ -1227,7 +1227,7 @@ User::factory()->create([
 ]);
 ```
 
-- [ ] **Step 6: Run verification**
+- [x] **Step 6: Run verification**
 
 Run:
 
@@ -1238,7 +1238,7 @@ php artisan test
 
 Expected: admin tests pass.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add app database routes resources tests
