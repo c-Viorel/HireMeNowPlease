@@ -79,13 +79,15 @@ The final Laravel project should use these responsibility boundaries:
 - Create: `/Users/viorel/Desktop/HireMe/resources/views/layouts/app.blade.php`
 - Test: `/Users/viorel/Desktop/HireMe/tests/Feature/SmokeTest.php`
 
-- [ ] **Step 1: Scaffold Laravel in the repo root**
+- [ ] **Step 1: Scaffold Laravel into a temporary directory and merge it into the repo root**
 
 Run:
 
 ```bash
-cd /Users/viorel/Desktop/HireMe
-composer create-project laravel/laravel .
+cd /Users/viorel/Desktop/HireMe/.worktrees/implementation
+composer create-project laravel/laravel .laravel-tmp
+rsync -a .laravel-tmp/ ./
+rm -rf .laravel-tmp
 composer require laravel/breeze --dev
 php artisan breeze:install blade --pest
 npm install
@@ -127,7 +129,7 @@ it('loads the public homepage', function () {
 Run:
 
 ```bash
-cd /Users/viorel/Desktop/HireMe
+cd /Users/viorel/Desktop/HireMe/.worktrees/implementation
 php artisan test tests/Feature/SmokeTest.php
 npm run build
 ```
