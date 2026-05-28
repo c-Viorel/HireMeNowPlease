@@ -36,17 +36,17 @@ services:
         condition: service_started
 
   db:
-    image: mariadb:11.4
+    image: mysql:8.4
     restart: unless-stopped
     environment:
-      MARIADB_DATABASE: ${DB_DATABASE:-hireme}
-      MARIADB_USER: ${DB_USERNAME:-hireme}
-      MARIADB_PASSWORD: ${DB_PASSWORD}
-      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE:-hireme}
+      MYSQL_USER: ${DB_USERNAME:-hireme}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
     volumes:
       - hireme_db:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "healthcheck.sh --connect --innodb_initialized"]
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$${MYSQL_ROOT_PASSWORD} --silent"]
       interval: 10s
       timeout: 5s
       retries: 10
