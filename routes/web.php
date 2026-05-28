@@ -2,6 +2,7 @@
 
 use App\Enums\UserRole;
 use App\Http\Controllers\Candidate\ApplicationController as CandidateApplicationController;
+use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\Candidate\DashboardController as CandidateDashboardController;
 use App\Http\Controllers\Candidate\ProfileController as CandidateProfileController;
 use App\Http\Controllers\Employer\ApplicationController as EmployerApplicationController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\Employer\CompanyController as EmployerCompanyController
 use App\Http\Controllers\Employer\DashboardController as EmployerDashboardController;
 use App\Http\Controllers\Employer\JobController as EmployerJobController;
 use App\Http\Controllers\Employer\ShortlistController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\JobController;
 use App\Http\Controllers\ProfileController;
@@ -33,6 +35,11 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::post('/applications/{application}/conversations', [ConversationController::class, 'store'])->name('conversations.store');
+    Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
+    Route::get('/conversations/{conversation}', [ConversationController::class, 'show'])->name('conversations.show');
+    Route::post('/conversations/{conversation}/messages', [MessageController::class, 'store'])->name('messages.store');
+
     Route::prefix('candidate')->name('candidate.')->middleware('role:candidate')->group(function () {
         Route::get('/dashboard', CandidateDashboardController::class)->name('dashboard');
         Route::get('/applications', [CandidateApplicationController::class, 'index'])->name('applications.index');

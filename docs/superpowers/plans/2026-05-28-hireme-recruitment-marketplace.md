@@ -21,7 +21,7 @@ Mark each top-level task complete only after its tests pass and its commit exist
 - [x] Task 4: Candidate Portal
 - [x] Task 5: Employer Portal
 - [x] Task 6: Applications, Pipeline Statuses, Shortlist
-- [ ] Task 7: Messaging
+- [x] Task 7: Messaging
 - [ ] Task 8: Admin Panel
 - [ ] Task 9: Notifications And Mail
 - [ ] Task 10: UI Shell, Responsive Polish, Navigation
@@ -1057,7 +1057,7 @@ git commit -m "feat: add application workflow and shortlist"
 - Create: `/Users/viorel/Desktop/HireMe/resources/views/conversations/show.blade.php`
 - Test: `/Users/viorel/Desktop/HireMe/tests/Feature/MessagingTest.php`
 
-- [ ] **Step 1: Write failing messaging tests**
+- [x] **Step 1: Write failing messaging tests**
 
 ```php
 function createApplicationParticipants(): array
@@ -1098,7 +1098,7 @@ it('lets application participants exchange messages', function () {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
 
 Run:
 
@@ -1108,15 +1108,15 @@ php artisan test tests/Feature/MessagingTest.php
 
 Expected: FAIL because messaging controllers/policies are missing.
 
-- [ ] **Step 3: Implement conversation policy**
+- [x] **Step 3: Implement conversation policy**
 
 Allow access only when the current user is the application candidate or owns the application job's company.
 
-- [ ] **Step 4: Implement conversation creation and message sending**
+- [x] **Step 4: Implement conversation creation and message sending**
 
 `ConversationController@store` creates one conversation per application using `firstOrCreate`. `MessageController@store` validates `body` as required string max 5000 and stores `sender_id`.
 
-- [ ] **Step 5: Add routes and views**
+- [x] **Step 5: Add routes and views**
 
 Routes:
 
@@ -1129,7 +1129,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 ```
 
-- [ ] **Step 6: Run verification**
+- [x] **Step 6: Run verification**
 
 Run:
 
@@ -1140,7 +1140,7 @@ php artisan test
 
 Expected: messaging tests pass.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add app routes resources tests
