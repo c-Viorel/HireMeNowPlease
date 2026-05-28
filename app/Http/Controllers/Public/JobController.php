@@ -6,6 +6,7 @@ use App\Enums\EmploymentType;
 use App\Enums\JobStatus;
 use App\Enums\WorkplaceType;
 use App\Http\Controllers\Controller;
+use App\Models\Company;
 use App\Models\Job;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -61,15 +62,14 @@ class JobController extends Controller
         ]);
     }
 
-    public function show(string $job): View
+    public function show(Company $company, Job $job): View
     {
-        $job = Job::query()
-            ->with('company')
-            ->where('slug', $job)
-            ->where('status', JobStatus::Published)
-            ->latest('published_at')
-            ->latest('id')
-            ->firstOrFail();
+        abort_unless(
+            $job->company_id === $company->id && $job->status === JobStatus::Published,
+            404
+        );
+
+        $job->loadMissing('company');
 
         return view('public.jobs.show', [
             'job' => $job,

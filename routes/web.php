@@ -8,7 +8,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
 Route::get('/jobs', [JobController::class, 'index'])->name('jobs.index');
-Route::get('/jobs/{job:slug}', [JobController::class, 'show'])->name('jobs.show');
+Route::get('/companies/{company:slug}/jobs/{job:slug}', [JobController::class, 'show'])
+    ->scopeBindings()
+    ->name('jobs.show');
 
 Route::get('/dashboard', function () {
     return match (auth()->user()->role) {

@@ -3,6 +3,7 @@
 use App\Enums\EmploymentType;
 use App\Enums\JobStatus;
 use App\Enums\WorkplaceType;
+use App\Models\Company;
 use App\Models\Job;
 
 it('shows published jobs and hides draft jobs on the public job board', function () {
@@ -114,7 +115,7 @@ it('shows only published job detail pages by slug', function (JobStatus $status,
         'published_at' => $status === JobStatus::Published ? now() : null,
     ]);
 
-    $response = $this->get(route('jobs.show', $job->slug));
+    $response = $this->get(route('jobs.show', [$job->company, $job]));
 
     $response->assertStatus($expectedStatus);
 
@@ -131,3 +132,47 @@ it('shows only published job detail pages by slug', function (JobStatus $status,
     'closed' => [JobStatus::Closed, 404],
     'rejected' => [JobStatus::Rejected, 404],
 ]);
+
+it('scopes public job detail pages by company slug when job slugs match', function () {
+    $firstCompany = Company::factory()->create([
+        'name' => 'Northwind Labs',
+        'slug' => 'northwind-labs',
+    ]);
+
+    $secondCompany = Company::factory()->create([
+        'name' => 'Contoso Talent',
+        'slug' => 'contoso-talent',
+    ]);
+
+    $firstJob = Job::factory()
+        ->for($firstCompany)
+        ->create([
+            'slug' => 'shared-role',
+            'title' => 'Northwind Laravel Engineer',
+            'status' => JobStatus::Published,
+            'published_at' => now(),
+        ]);
+
+    $secondJob = Job::factory()
+        ->for($secondCompany)
+        ->create([
+            'slug' => 'shared-role',
+            'title' => 'Contoso Laravel Engineer',
+            'status' => JobStatus::Published,
+            'published_at' => now(),
+        ]);
+
+    $this->get(route('jobs.show', [$firstCompany, $firstJob]))
+        ->assertOk()
+        ->assertSeeText($firstCompany->name)
+        ->assertSeeText($firstJob->title)
+        ->assertDontSeeText($secondCompany->name)
+        ->assertDontSeeText($secondJob->title);
+
+    $this->get(route('jobs.show', [$secondCompany, $secondJob]))
+        ->assertOk()
+        ->assertSeeText($secondCompany->name)
+        ->assertSeeText($secondJob->title)
+        ->assertDontSeeText($firstCompany->name)
+        ->assertDontSeeText($firstJob->title);
+});

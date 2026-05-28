@@ -48,7 +48,7 @@
                                 <article class="rounded-md border border-slate-200 p-4">
                                     <p class="text-sm text-slate-500">{{ $job->company->name }}</p>
                                     <h3 class="mt-1 text-lg font-semibold text-slate-950">
-                                        <a href="{{ route('jobs.show', $job->slug) }}" class="hover:text-emerald-700">{{ $job->title }}</a>
+                                        <a href="{{ route('jobs.show', [$job->company, $job]) }}" class="hover:text-emerald-700">{{ $job->title }}</a>
                                     </h3>
                                     <p class="mt-2 text-sm text-slate-600">{{ $job->location ?: 'Locatie flexibila' }} · {{ str($job->workplace_type->value)->replace('_', ' ')->title() }} · {{ str($job->employment_type->value)->replace('_', ' ')->title() }}</p>
                                 </article>

@@ -82,11 +82,11 @@
                                 <div>
                                     <p class="text-sm text-slate-500">{{ $job->company->name }}</p>
                                     <h2 class="mt-1 text-xl font-semibold text-slate-950">
-                                        <a href="{{ route('jobs.show', $job->slug) }}" class="hover:text-emerald-700">{{ $job->title }}</a>
+                                        <a href="{{ route('jobs.show', [$job->company, $job]) }}" class="hover:text-emerald-700">{{ $job->title }}</a>
                                     </h2>
                                     <p class="mt-2 text-sm text-slate-600">{{ str($job->description)->limit(170) }}</p>
                                 </div>
-                                <a href="{{ route('jobs.show', $job->slug) }}" class="inline-flex shrink-0 items-center justify-center rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-100">Detalii</a>
+                                <a href="{{ route('jobs.show', [$job->company, $job]) }}" class="inline-flex shrink-0 items-center justify-center rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-100">Detalii</a>
                             </div>
                             <dl class="mt-4 flex flex-wrap gap-2 text-sm text-slate-600">
                                 <div class="rounded-md bg-slate-100 px-3 py-1">{{ $job->location ?: 'Locatie flexibila' }}</div>
