@@ -19,7 +19,7 @@ Mark each top-level task complete only after its tests pass and its commit exist
 - [x] Task 2: Authentication, Roles, Email Verification, Access Control
 - [x] Task 3: Public Site And Job Board
 - [x] Task 4: Candidate Portal
-- [ ] Task 5: Employer Portal
+- [x] Task 5: Employer Portal
 - [ ] Task 6: Applications, Pipeline Statuses, Shortlist
 - [ ] Task 7: Messaging
 - [ ] Task 8: Admin Panel
@@ -866,7 +866,7 @@ git commit -m "feat: add candidate portal"
 - Modify: `/Users/viorel/Desktop/HireMe/routes/web.php`
 - Test: `/Users/viorel/Desktop/HireMe/tests/Feature/EmployerPortalTest.php`
 
-- [ ] **Step 1: Write failing employer tests**
+- [x] **Step 1: Write failing employer tests**
 
 ```php
 it('lets an employer create a company and publish a job', function () {
@@ -902,7 +902,7 @@ it('lets an employer create a company and publish a job', function () {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
 
 Run:
 
@@ -912,15 +912,15 @@ php artisan test tests/Feature/EmployerPortalTest.php
 
 Expected: FAIL because employer portal routes/controllers are missing.
 
-- [ ] **Step 3: Implement company and job requests**
+- [x] **Step 3: Implement company and job requests**
 
 Company request validates name, description, website URL, location, and logo image max 2048 KB. Job request validates ownership of `company_id`, title, description, location, employment/workplace enum values, experience level, salary range, and status `draft|published`.
 
-- [ ] **Step 4: Implement employer controllers**
+- [x] **Step 4: Implement employer controllers**
 
 Company creation must set `owner_id` to current user, generate a unique slug, upload logo to `company-logos/{company_id}`, and default company status to `pending`. Job creation must only allow companies owned by the current employer and set `published_at` when status is `published`.
 
-- [ ] **Step 5: Add employer routes**
+- [x] **Step 5: Add employer routes**
 
 ```php
 Route::middleware(['auth', 'verified', 'role:employer'])->prefix('employer')->name('employer.')->group(function () {
@@ -930,11 +930,11 @@ Route::middleware(['auth', 'verified', 'role:employer'])->prefix('employer')->na
 });
 ```
 
-- [ ] **Step 6: Build views**
+- [x] **Step 6: Build views**
 
 Employer dashboard shows company status, active jobs, application counts, and latest messages. Company/job CRUD views should be practical forms with validation errors.
 
-- [ ] **Step 7: Run verification**
+- [x] **Step 7: Run verification**
 
 Run:
 
@@ -945,7 +945,7 @@ php artisan test
 
 Expected: employer portal tests pass.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add app routes resources tests

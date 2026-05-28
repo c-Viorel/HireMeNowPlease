@@ -3,6 +3,9 @@
 use App\Enums\UserRole;
 use App\Http\Controllers\Candidate\DashboardController as CandidateDashboardController;
 use App\Http\Controllers\Candidate\ProfileController as CandidateProfileController;
+use App\Http\Controllers\Employer\CompanyController as EmployerCompanyController;
+use App\Http\Controllers\Employer\DashboardController as EmployerDashboardController;
+use App\Http\Controllers\Employer\JobController as EmployerJobController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\JobController;
 use App\Http\Controllers\ProfileController;
@@ -30,9 +33,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/profile/cv', [CandidateProfileController::class, 'downloadCv'])->name('profile.cv');
     });
 
-    Route::get('/employer/dashboard', fn () => view('dashboard'))
-        ->middleware('role:employer')
-        ->name('employer.dashboard');
+    Route::prefix('employer')->name('employer.')->middleware('role:employer')->group(function () {
+        Route::get('/dashboard', EmployerDashboardController::class)->name('dashboard');
+        Route::resource('companies', EmployerCompanyController::class);
+        Route::resource('jobs', EmployerJobController::class);
+    });
 
     Route::get('/admin/dashboard', fn () => view('dashboard'))
         ->middleware('role:admin')
