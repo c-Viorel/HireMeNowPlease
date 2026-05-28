@@ -25,8 +25,8 @@ Mark each top-level task complete only after its tests pass and its commit exist
 - [x] Task 8: Admin Panel
 - [x] Task 9: Notifications And Mail
 - [x] Task 10: UI Shell, Responsive Polish, Navigation
-- [ ] Task 11: Deployment And Hostinger Readiness
-- [ ] Task 12: End-To-End Verification Pass
+- [x] Task 11: Deployment And Hostinger Readiness
+- [x] Task 12: End-To-End Verification Pass
 
 ## Dependency Map
 
@@ -1514,7 +1514,7 @@ This refresh must update mail, queue, notifications, and UI smoke checks after t
 - Modify only bugfix files required by failed verification
 - Create: `/Users/viorel/Desktop/HireMe/docs/release/v1-verification.md`
 
-- [ ] **Step 1: Run full automated suite**
+- [x] **Step 1: Run full automated suite**
 
 Run:
 
@@ -1526,7 +1526,7 @@ npm run build
 
 Expected: all tests pass and production assets build.
 
-- [ ] **Step 2: Run migrations from scratch**
+- [x] **Step 2: Run migrations from scratch**
 
 Run:
 
@@ -1536,7 +1536,7 @@ php artisan migrate:fresh --seed
 
 Expected: migrations and seeders complete without errors.
 
-- [ ] **Step 3: Run local manual smoke test**
+- [x] **Step 3: Run local manual smoke test**
 
 Run:
 
@@ -1559,7 +1559,7 @@ Manually verify:
 - conversation and message send
 - email notification captured by local mail/log driver
 
-- [ ] **Step 4: Record verification results**
+- [x] **Step 4: Record verification results**
 
 Create `/Users/viorel/Desktop/HireMe/docs/release/v1-verification.md`:
 
@@ -1594,7 +1594,7 @@ Date: 2026-05-28
 No launch-blocking issues found.
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add .
