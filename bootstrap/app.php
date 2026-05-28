@@ -4,6 +4,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\EnsureUserRole;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -14,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
+            'active' => EnsureUserIsActive::class,
             'role' => EnsureUserRole::class,
         ]);
     })

@@ -130,12 +130,76 @@ it('validates admin moderation status updates', function () {
         ->assertSessionHasErrors('status');
 });
 
+it('blocks inactive users from protected routes and login', function (UserRole $role, string $dashboard) {
+    $admin = User::factory()->create(['role' => UserRole::Admin, 'email_verified_at' => now()]);
+    $user = User::factory()->create([
+        'role' => $role,
+        'email_verified_at' => now(),
+        'password' => 'password',
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($admin)->patch("/admin/users/{$user->id}", [
+        'is_active' => false,
+    ])->assertRedirect('/admin/users');
+
+    $this->actingAs($user->fresh())->get($dashboard)
+        ->assertRedirect('/login')
+        ->assertSessionHasErrors('email');
+
+    $this->assertGuest();
+
+    $this->post('/login', [
+        'email' => $user->email,
+        'password' => 'password',
+    ])->assertSessionHasErrors('email');
+
+    $this->assertGuest();
+})->with([
+    'candidate' => [UserRole::Candidate, '/candidate/dashboard'],
+    'employer' => [UserRole::Employer, '/employer/dashboard'],
+]);
+
+it('only publishes jobs for approved companies', function () {
+    $admin = User::factory()->create(['role' => UserRole::Admin, 'email_verified_at' => now()]);
+    $pendingCompany = Company::factory()->create(['status' => 'pending']);
+    $blockedCompany = Company::factory()->create(['status' => 'blocked']);
+    $approvedCompany = Company::factory()->create(['status' => 'approved']);
+    $pendingJob = Job::factory()->for($pendingCompany)->create(['status' => JobStatus::Pending, 'published_at' => null]);
+    $blockedJob = Job::factory()->for($blockedCompany)->create(['status' => JobStatus::Pending, 'published_at' => null]);
+    $approvedJob = Job::factory()->for($approvedCompany)->create(['status' => JobStatus::Pending, 'published_at' => null]);
+
+    $this->actingAs($admin)->from('/admin/jobs')->patch("/admin/jobs/{$pendingJob->id}", [
+        'status' => 'published',
+    ])->assertRedirect('/admin/jobs')
+        ->assertSessionHasErrors('status');
+
+    $this->actingAs($admin)->from('/admin/jobs')->patch("/admin/jobs/{$blockedJob->id}", [
+        'status' => 'published',
+    ])->assertRedirect('/admin/jobs')
+        ->assertSessionHasErrors('status');
+
+    $this->actingAs($admin)->patch("/admin/jobs/{$approvedJob->id}", [
+        'status' => 'published',
+    ])->assertRedirect('/admin/jobs');
+
+    expect($pendingJob->fresh()->status)->toBe(JobStatus::Pending)
+        ->and($pendingJob->fresh()->published_at)->toBeNull()
+        ->and($blockedJob->fresh()->status)->toBe(JobStatus::Pending)
+        ->and($blockedJob->fresh()->published_at)->toBeNull()
+        ->and($approvedJob->fresh()->status)->toBe(JobStatus::Published)
+        ->and($approvedJob->fresh()->published_at)->not->toBeNull();
+});
+
 it('seeds the first verified admin user', function () {
     $this->seed(DatabaseSeeder::class);
+    $this->seed(DatabaseSeeder::class);
 
-    $admin = User::where('email', 'admin@hireme.local')->firstOrFail();
+    $admins = User::where('email', 'admin@hireme.local')->get();
+    $admin = $admins->sole();
 
     expect($admin->name)->toBe('HireMe Admin')
         ->and($admin->role)->toBe(UserRole::Admin)
-        ->and($admin->email_verified_at)->not->toBeNull();
+        ->and($admin->email_verified_at)->not->toBeNull()
+        ->and($admin->is_active)->toBeTrue();
 });

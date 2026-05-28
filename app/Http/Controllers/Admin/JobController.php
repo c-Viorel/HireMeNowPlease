@@ -8,6 +8,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class JobController extends Controller
 {
@@ -27,6 +28,12 @@ class JobController extends Controller
         $validated = $request->validate([
             'status' => ['required', Rule::in(['pending', 'published', 'closed', 'rejected'])],
         ]);
+
+        if ($validated['status'] === 'published' && $job->company->status !== 'approved') {
+            throw ValidationException::withMessages([
+                'status' => 'Only jobs from approved companies can be published.',
+            ]);
+        }
 
         $job->status = $validated['status'];
 

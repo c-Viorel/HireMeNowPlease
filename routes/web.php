@@ -36,9 +36,9 @@ Route::get('/dashboard', function () {
         UserRole::Employer => redirect()->route('employer.dashboard'),
         UserRole::Admin => redirect()->route('admin.dashboard'),
     };
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->middleware(['auth', 'active', 'verified'])->name('dashboard');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'active', 'verified'])->group(function () {
     Route::post('/applications/{application}/conversations', [ConversationController::class, 'store'])->name('conversations.store');
     Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
     Route::get('/conversations/{conversation}', [ConversationController::class, 'show'])->name('conversations.show');
@@ -74,7 +74,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
