@@ -3,33 +3,30 @@
 namespace App\Support;
 
 use App\Models\Application;
-use App\Models\Shortlist;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
-class Shortlists
+class ApplicationSubmissions
 {
     /**
-     * @param (callable(array<string, mixed>): Shortlist)|null $creator
+     * @param array<string, mixed> $attributes
+     * @param (callable(array<string, mixed>): Application)|null $creator
      */
-    public static function createForApplication(Application $application, ?callable $creator = null): void
+    public static function create(array $attributes, ?callable $creator = null): Application
     {
-        $application->loadMissing('job');
-
-        $attributes = [
-            'company_id' => $application->job->company_id,
-            'job_id' => $application->job_id,
-            'candidate_id' => $application->candidate_id,
-        ];
-
         try {
-            $creator
+            return $creator
                 ? $creator($attributes)
-                : Shortlist::firstOrCreate($attributes);
+                : Application::create($attributes);
         } catch (QueryException $exception) {
             if (! self::isUniqueConstraintViolation($exception)) {
                 throw $exception;
             }
+
+            throw ValidationException::withMessages([
+                'job' => 'You have already applied to this job.',
+            ]);
         }
     }
 

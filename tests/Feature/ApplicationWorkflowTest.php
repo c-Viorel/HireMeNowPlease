@@ -9,10 +9,34 @@ use App\Models\Company;
 use App\Models\Job;
 use App\Models\Shortlist;
 use App\Models\User;
+use App\Support\ApplicationSubmissions;
+use App\Support\Shortlists;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 uses(RefreshDatabase::class);
+
+function duplicateApplicationQueryException(): QueryException
+{
+    return new QueryException(
+        'sqlite',
+        'insert into applications (job_id, candidate_id) values (?, ?)',
+        [1, 1],
+        new Exception('SQLSTATE[23000]: Integrity constraint violation: 19 UNIQUE constraint failed: applications.job_id, applications.candidate_id')
+    );
+}
+
+function duplicateShortlistQueryException(): QueryException
+{
+    return new QueryException(
+        'sqlite',
+        'insert into shortlists (company_id, job_id, candidate_id) values (?, ?, ?)',
+        [1, 1, 1],
+        new Exception('SQLSTATE[23000]: Integrity constraint violation: 19 UNIQUE constraint failed: shortlists.company_id, shortlists.job_id, shortlists.candidate_id')
+    );
+}
 
 it('lets a verified candidate apply once and lets employer update status', function () {
     Storage::fake('local');
@@ -162,6 +186,25 @@ it('blocks duplicate applications to the same job', function () {
     expect(Application::where('job_id', $job->id)->where('candidate_id', $candidate->id)->count())->toBe(1);
 });
 
+it('converts duplicate application query exceptions into validation errors', function () {
+    $this->expectException(ValidationException::class);
+
+    try {
+        ApplicationSubmissions::create([
+            'job_id' => 1,
+            'candidate_id' => 1,
+            'candidate_profile_id' => 1,
+            'status' => ApplicationStatus::Submitted,
+        ], fn () => throw duplicateApplicationQueryException());
+    } catch (ValidationException $exception) {
+        expect($exception->errors())->toBe([
+            'job' => ['You have already applied to this job.'],
+        ]);
+
+        throw $exception;
+    }
+});
+
 it('blocks candidates without a profile from applying', function () {
     $candidate = User::factory()->create(['role' => UserRole::Candidate, 'email_verified_at' => now()]);
     $company = Company::factory()->create();
@@ -226,6 +269,24 @@ it('shortlists an application once and marks it shortlisted', function () {
         ->where('job_id', $job->id)
         ->where('candidate_id', $candidate->id)
         ->count())->toBe(1);
+});
+
+it('treats duplicate shortlist query exceptions as successful idempotent creation', function () {
+    $employer = User::factory()->create(['role' => UserRole::Employer, 'email_verified_at' => now()]);
+    $company = Company::factory()->for($employer, 'owner')->create();
+    $job = Job::factory()->for($company)->create();
+    $candidate = User::factory()->create(['role' => UserRole::Candidate, 'email_verified_at' => now()]);
+    $profile = CandidateProfile::factory()->for($candidate, 'user')->create();
+    $application = Application::create([
+        'job_id' => $job->id,
+        'candidate_id' => $candidate->id,
+        'candidate_profile_id' => $profile->id,
+        'status' => ApplicationStatus::Viewed,
+    ]);
+
+    Shortlists::createForApplication($application, fn () => throw duplicateShortlistQueryException());
+
+    expect(true)->toBeTrue();
 });
 
 it('does not allow applying through the wrong company scoped job route', function () {
