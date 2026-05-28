@@ -13,6 +13,16 @@ test('email verification screen can be rendered', function () {
     $response->assertStatus(200);
 });
 
+test('inactive users are logged out before viewing email verification screen', function () {
+    $user = User::factory()->unverified()->create(['is_active' => false]);
+
+    $this->actingAs($user)->get('/verify-email')
+        ->assertRedirect('/login')
+        ->assertSessionHasErrors('email');
+
+    $this->assertGuest();
+});
+
 test('email can be verified', function () {
     $user = User::factory()->unverified()->create();
 
