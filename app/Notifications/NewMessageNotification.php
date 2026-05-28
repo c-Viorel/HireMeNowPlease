@@ -6,7 +6,6 @@ use App\Models\Message;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use Illuminate\Support\Str;
 
 class NewMessageNotification extends Notification
 {
@@ -16,7 +15,6 @@ class NewMessageNotification extends Notification
         private readonly int $conversationId,
         private readonly string $senderName,
         private readonly string $jobTitle,
-        private readonly string $excerpt,
     ) {}
 
     public static function fromMessage(Message $message): self
@@ -27,7 +25,6 @@ class NewMessageNotification extends Notification
             $message->conversation_id,
             $message->sender->name,
             $message->conversation->application->job->title,
-            Str::limit($message->body, 120),
         );
     }
 
@@ -44,7 +41,6 @@ class NewMessageNotification extends Notification
         return (new MailMessage)
             ->subject('New message on HireMe')
             ->line($this->senderName.' sent a message about '.$this->jobTitle.'.')
-            ->line($this->excerpt)
             ->action('Open conversation', $this->conversationUrl());
     }
 
@@ -57,7 +53,6 @@ class NewMessageNotification extends Notification
             'conversation_id' => $this->conversationId,
             'sender_name' => $this->senderName,
             'job_title' => $this->jobTitle,
-            'excerpt' => $this->excerpt,
             'url' => $this->conversationUrl(),
         ];
     }

@@ -98,19 +98,27 @@ it('notifies only the other conversation participant after a message is created'
     Notification::fake();
     [$candidate, $employer, , , $application] = createNotificationApplicationParticipants();
     $conversation = Conversation::create(['application_id' => $application->id]);
+    $sensitiveBody = 'Private compensation details: current salary is 123456.';
 
     $this->actingAs($candidate)->post(route('messages.store', $conversation), [
-        'body' => 'Hello, I am available for an interview.',
+        'body' => $sensitiveBody,
     ])->assertRedirect();
 
-    Notification::assertSentTo($employer, NewMessageNotification::class, function ($notification) use ($conversation, $employer) {
+    Notification::assertSentTo($employer, NewMessageNotification::class, function ($notification) use ($conversation, $employer, $sensitiveBody) {
         $payload = $notification->toArray($employer);
         $mail = $notification->toMail($employer);
+        $mailLines = implode("\n", [
+            ...$mail->introLines,
+            ...$mail->outroLines,
+        ]);
 
         return $notification->via($employer) === ['mail', 'database']
             && $payload['conversation_id'] === $conversation->id
             && $payload['url'] === route('conversations.show', $conversation)
-            && $mail->actionUrl === route('conversations.show', $conversation);
+            && $mail->actionUrl === route('conversations.show', $conversation)
+            && ! array_key_exists('excerpt', $payload)
+            && ! str_contains(json_encode($payload), $sensitiveBody)
+            && ! str_contains($mailLines, $sensitiveBody);
     });
     Notification::assertNotSentTo($candidate, NewMessageNotification::class);
 });
