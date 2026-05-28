@@ -1,6 +1,6 @@
 # Hostinger Cloud Startup Deployment
 
-This guide documents the initial V1-ready deployment path for HireMe on Hostinger Cloud Startup. It may be revisited after the notifications and final UI work lands, especially for any mail-driver, queue-worker, or smoke-check refinements introduced by those tasks.
+This guide documents the V1-ready deployment path for HireMe on Hostinger Cloud Startup.
 
 ## Required Services
 
@@ -68,16 +68,26 @@ php artisan route:cache
 php artisan view:cache
 ```
 
-If queues are enabled on the server, start or restart the configured queue worker after the release so database-backed jobs are processed from `queue_jobs`.
+Notifications are delivered through Laravel's mail and database notification channels. The mail channel uses the SMTP settings above, while in-app notification records are stored in the `notifications` table.
+
+`QUEUE_CONNECTION=database` and `DB_QUEUE_TABLE=queue_jobs` keep the deployment ready for database-backed queued work. If queued jobs are enabled on the server, start or restart the configured queue worker after each release so jobs are processed from `queue_jobs`:
+
+```bash
+php artisan queue:work database --queue=default --tries=3
+```
+
+Use Hostinger's process manager or a supervised shell process if available. If a persistent worker is not available on the plan, run notifications synchronously or use a cron-triggered queue command as a temporary fallback until a supervised worker is configured.
 
 ## Smoke Checks
 
-- Homepage loads.
-- `/jobs` loads.
-- Registration works.
-- Email verification sends.
-- CV upload works.
-- Employer can publish a job.
-- Candidate can apply.
-- Message notification sends.
+- Homepage loads and the public navigation fits on mobile and desktop widths.
+- `/jobs` loads and job detail pages open from company-scoped URLs.
+- Registration works for candidate and employer roles.
+- Email verification sends through SMTP.
+- Candidate dashboard loads, CV upload works, and the uploaded CV is not publicly browseable.
+- Employer dashboard loads, company logo upload works, and an approved employer can publish a job.
+- Candidate can apply and the employer receives both email and in-app notification records.
+- Employer can update application status and the candidate receives both email and in-app notification records.
+- Candidate and employer can exchange messages without email notifications exposing the message body.
+- Admin dashboard loads and can moderate companies, jobs, and users.
 - `storage` assets resolve through the public storage link.

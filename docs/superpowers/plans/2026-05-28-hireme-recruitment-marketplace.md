@@ -1452,7 +1452,7 @@ git commit -m "feat: polish marketplace interface"
 
 **Owner:** Deployment subagent  
 **Dependencies:** Task 0 initially; final update after Tasks 9 and 10  
-**Status Note:** Initial documentation Steps 1-5 are complete; a final deployment refresh remains after notifications and UI work land.
+**Status Note:** Deployment documentation has been refreshed after notifications and UI work landed.
 **Files:**
 - Create: `/Users/viorel/Desktop/HireMe/docs/deployment/hostinger-cloud-startup.md`
 - Modify: `/Users/viorel/Desktop/HireMe/.env.example`
@@ -1500,7 +1500,7 @@ git add .env.example README.md docs/deployment
 git commit -m "docs: add hostinger deployment guide"
 ```
 
-- [ ] **Step 6: Final deployment refresh after Tasks 9 and 10**
+- [x] **Step 6: Final deployment refresh after Tasks 9 and 10**
 
 This refresh must update mail, queue, notifications, and UI smoke checks after those tasks land.
 
