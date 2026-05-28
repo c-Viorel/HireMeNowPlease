@@ -35,7 +35,16 @@
                             <div><dt class="font-medium text-gray-900">Headline</dt><dd>{{ $application->candidateProfile->headline ?: 'Not provided' }}</dd></div>
                             <div><dt class="font-medium text-gray-900">Location</dt><dd>{{ $application->candidateProfile->location ?: 'Not provided' }}</dd></div>
                             <div><dt class="font-medium text-gray-900">Phone</dt><dd>{{ $application->candidateProfile->phone ?: 'Not provided' }}</dd></div>
-                            <div><dt class="font-medium text-gray-900">CV</dt><dd>{{ $application->cv_path ?: 'No CV captured' }}</dd></div>
+                            <div>
+                                <dt class="font-medium text-gray-900">CV</dt>
+                                <dd>
+                                    @if ($application->cv_path)
+                                        <a href="{{ route('employer.applications.cv', $application) }}" class="font-medium text-indigo-600 hover:text-indigo-700">Download CV</a>
+                                    @else
+                                        No CV captured
+                                    @endif
+                                </dd>
+                            </div>
                         </dl>
                     </div>
 
@@ -71,4 +80,3 @@
         </div>
     </div>
 </x-app-layout>
-

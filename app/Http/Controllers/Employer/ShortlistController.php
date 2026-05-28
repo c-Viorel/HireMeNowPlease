@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Employer;
 use App\Enums\ApplicationStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Application;
-use App\Models\Shortlist;
+use App\Support\Shortlists;
 use Illuminate\Http\RedirectResponse;
 
 class ShortlistController extends Controller
@@ -13,13 +13,8 @@ class ShortlistController extends Controller
     public function store(Application $application): RedirectResponse
     {
         $this->authorizeOwner($application);
-        $application->loadMissing('job');
 
-        Shortlist::updateOrCreate([
-            'company_id' => $application->job->company_id,
-            'job_id' => $application->job_id,
-            'candidate_id' => $application->candidate_id,
-        ]);
+        Shortlists::createForApplication($application);
 
         $application->update(['status' => ApplicationStatus::Shortlisted]);
 
@@ -36,4 +31,3 @@ class ShortlistController extends Controller
         );
     }
 }
-

@@ -10,12 +10,15 @@ use App\Models\Job;
 use App\Models\Shortlist;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
 it('lets a verified candidate apply once and lets employer update status', function () {
+    Storage::fake('local');
     $candidate = User::factory()->create(['role' => UserRole::Candidate, 'email_verified_at' => now()]);
-    $profile = CandidateProfile::factory()->for($candidate, 'user')->create(['cv_path' => 'cvs/demo.pdf']);
+    Storage::disk('local')->put("cvs/{$candidate->id}/demo.pdf", 'private cv contents');
+    $profile = CandidateProfile::factory()->for($candidate, 'user')->create(['cv_path' => "cvs/{$candidate->id}/demo.pdf"]);
     $employer = User::factory()->create(['role' => UserRole::Employer, 'email_verified_at' => now()]);
     $company = Company::factory()->for($employer, 'owner')->create();
     $job = Job::factory()->for($company)->create(['status' => JobStatus::Published]);
@@ -27,8 +30,11 @@ it('lets a verified candidate apply once and lets employer update status', funct
     $application = Application::firstOrFail();
 
     expect($application->candidate_profile_id)->toBe($profile->id)
-        ->and($application->cv_path)->toBe('cvs/demo.pdf')
+        ->and($application->cv_path)->toStartWith("applications/{$application->id}/")
+        ->and($application->cv_path)->not->toBe($profile->cv_path)
         ->and($application->status)->toBe(ApplicationStatus::Submitted);
+
+    Storage::disk('local')->assertExists($application->cv_path);
 
     $this->actingAs($employer)->patch("/employer/applications/{$application->id}/status", [
         'status' => 'viewed',
@@ -38,6 +44,100 @@ it('lets a verified candidate apply once and lets employer update status', funct
         'id' => $application->id,
         'status' => 'viewed',
     ]);
+});
+
+it('lets the owning employer download the captured application cv', function () {
+    Storage::fake('local');
+    $candidate = User::factory()->create(['role' => UserRole::Candidate, 'email_verified_at' => now()]);
+    Storage::disk('local')->put("cvs/{$candidate->id}/resume.pdf", 'captured cv contents');
+    CandidateProfile::factory()->for($candidate, 'user')->create([
+        'cv_path' => "cvs/{$candidate->id}/resume.pdf",
+    ]);
+    $employer = User::factory()->create(['role' => UserRole::Employer, 'email_verified_at' => now()]);
+    $company = Company::factory()->for($employer, 'owner')->create();
+    $job = Job::factory()->for($company)->create(['status' => JobStatus::Published]);
+
+    $this->actingAs($candidate)->post(route('jobs.apply', [$company, $job]), [
+        'message' => 'Please review my CV.',
+    ]);
+
+    $application = Application::firstOrFail();
+
+    $this->actingAs($employer)->get(route('employer.applications.cv', $application))
+        ->assertOk()
+        ->assertDownload('resume.pdf');
+});
+
+it('forbids non-owner employers from downloading application cvs', function () {
+    Storage::fake('local');
+    $owner = User::factory()->create(['role' => UserRole::Employer, 'email_verified_at' => now()]);
+    $otherEmployer = User::factory()->create(['role' => UserRole::Employer, 'email_verified_at' => now()]);
+    $company = Company::factory()->for($owner, 'owner')->create();
+    $job = Job::factory()->for($company)->create();
+    $candidate = User::factory()->create(['role' => UserRole::Candidate, 'email_verified_at' => now()]);
+    $profile = CandidateProfile::factory()->for($candidate, 'user')->create();
+    Storage::disk('local')->put('applications/1/resume.pdf', 'captured cv contents');
+    $application = Application::create([
+        'job_id' => $job->id,
+        'candidate_id' => $candidate->id,
+        'candidate_profile_id' => $profile->id,
+        'cv_path' => 'applications/1/resume.pdf',
+        'status' => ApplicationStatus::Submitted,
+    ]);
+
+    $this->actingAs($otherEmployer)->get(route('employer.applications.cv', $application))
+        ->assertForbidden();
+});
+
+it('hides raw cv storage paths on the employer application page', function () {
+    Storage::fake('local');
+    $employer = User::factory()->create(['role' => UserRole::Employer, 'email_verified_at' => now()]);
+    $company = Company::factory()->for($employer, 'owner')->create();
+    $job = Job::factory()->for($company)->create();
+    $candidate = User::factory()->create(['role' => UserRole::Candidate, 'email_verified_at' => now()]);
+    $profile = CandidateProfile::factory()->for($candidate, 'user')->create();
+    Storage::disk('local')->put('applications/1/resume.pdf', 'captured cv contents');
+    $application = Application::create([
+        'job_id' => $job->id,
+        'candidate_id' => $candidate->id,
+        'candidate_profile_id' => $profile->id,
+        'cv_path' => 'applications/1/resume.pdf',
+        'status' => ApplicationStatus::Submitted,
+    ]);
+
+    $this->actingAs($employer)->get(route('employer.applications.show', $application))
+        ->assertOk()
+        ->assertSee('Download CV')
+        ->assertDontSee('applications/1/resume.pdf');
+});
+
+it('keeps application cv downloads working after the candidate replaces their profile cv', function () {
+    Storage::fake('local');
+    $candidate = User::factory()->create(['role' => UserRole::Candidate, 'email_verified_at' => now()]);
+    Storage::disk('local')->put("cvs/{$candidate->id}/old.pdf", 'original cv snapshot');
+    $profile = CandidateProfile::factory()->for($candidate, 'user')->create([
+        'cv_path' => "cvs/{$candidate->id}/old.pdf",
+    ]);
+    $employer = User::factory()->create(['role' => UserRole::Employer, 'email_verified_at' => now()]);
+    $company = Company::factory()->for($employer, 'owner')->create();
+    $job = Job::factory()->for($company)->create(['status' => JobStatus::Published]);
+
+    $this->actingAs($candidate)->post(route('jobs.apply', [$company, $job]), [
+        'message' => 'Snapshot this CV.',
+    ]);
+
+    $application = Application::firstOrFail();
+    $snapshotPath = $application->cv_path;
+
+    Storage::disk('local')->delete($profile->cv_path);
+    Storage::disk('local')->put("cvs/{$candidate->id}/new.pdf", 'new profile cv');
+    $profile->update(['cv_path' => "cvs/{$candidate->id}/new.pdf"]);
+
+    Storage::disk('local')->assertExists($snapshotPath);
+
+    $this->actingAs($employer)->get(route('employer.applications.cv', $application))
+        ->assertOk()
+        ->assertDownload('old.pdf');
 });
 
 it('blocks duplicate applications to the same job', function () {
@@ -142,4 +242,3 @@ it('does not allow applying through the wrong company scoped job route', functio
 
     expect(Application::count())->toBe(0);
 });
-

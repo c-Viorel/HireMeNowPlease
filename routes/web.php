@@ -45,6 +45,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/dashboard', EmployerDashboardController::class)->name('dashboard');
         Route::get('/applications', [EmployerApplicationController::class, 'index'])->name('applications.index');
         Route::get('/applications/{application}', [EmployerApplicationController::class, 'show'])->name('applications.show');
+        Route::get('/applications/{application}/cv', [EmployerApplicationController::class, 'downloadCv'])->name('applications.cv');
         Route::patch('/applications/{application}/status', [EmployerApplicationController::class, 'updateStatus'])->name('applications.status');
         Route::post('/applications/{application}/shortlist', [ShortlistController::class, 'store'])->name('applications.shortlist');
         Route::resource('companies', EmployerCompanyController::class);

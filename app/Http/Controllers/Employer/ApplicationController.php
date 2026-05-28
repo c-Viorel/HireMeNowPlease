@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Employer;
 use App\Enums\ApplicationStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Application;
-use App\Models\Shortlist;
+use App\Support\Shortlists;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ApplicationController extends Controller
 {
@@ -36,6 +38,15 @@ class ApplicationController extends Controller
         ]);
     }
 
+    public function downloadCv(Application $application): StreamedResponse
+    {
+        $this->authorizeOwner($application);
+
+        abort_if(! $application->cv_path || ! Storage::disk('local')->exists($application->cv_path), 404);
+
+        return Storage::disk('local')->download($application->cv_path, basename($application->cv_path));
+    }
+
     public function updateStatus(Request $request, Application $application): RedirectResponse
     {
         $this->authorizeOwner($application);
@@ -47,7 +58,7 @@ class ApplicationController extends Controller
         $application->update(['status' => $validated['status']]);
 
         if ($validated['status'] === ApplicationStatus::Shortlisted->value) {
-            $this->shortlist($application);
+            Shortlists::createForApplication($application);
         }
 
         return back()->with('status', 'application-status-updated');
@@ -77,15 +88,4 @@ class ApplicationController extends Controller
         ];
     }
 
-    private function shortlist(Application $application): void
-    {
-        $application->loadMissing('job');
-
-        Shortlist::updateOrCreate([
-            'company_id' => $application->job->company_id,
-            'job_id' => $application->job_id,
-            'candidate_id' => $application->candidate_id,
-        ]);
-    }
 }
-

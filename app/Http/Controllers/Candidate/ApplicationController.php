@@ -10,8 +10,11 @@ use App\Models\Application;
 use App\Models\Company;
 use App\Models\Job;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ApplicationController extends Controller
 {
@@ -47,17 +50,45 @@ class ApplicationController extends Controller
             ])->withInput();
         }
 
-        Application::create([
-            'job_id' => $job->id,
-            'candidate_id' => $candidate->id,
-            'candidate_profile_id' => $profile->id,
-            'message' => $request->validated('message'),
-            'cv_path' => $profile->cv_path,
-            'status' => ApplicationStatus::Submitted,
-        ]);
+        try {
+            $application = Application::create([
+                'job_id' => $job->id,
+                'candidate_id' => $candidate->id,
+                'candidate_profile_id' => $profile->id,
+                'message' => $request->validated('message'),
+                'cv_path' => null,
+                'status' => ApplicationStatus::Submitted,
+            ]);
+        } catch (QueryException $exception) {
+            if (! $this->isUniqueConstraintViolation($exception)) {
+                throw $exception;
+            }
+
+            return back()->withErrors([
+                'job' => 'You have already applied to this job.',
+            ])->withInput();
+        }
+
+        if ($profile->cv_path && Storage::disk('local')->exists($profile->cv_path)) {
+            $snapshotPath = 'applications/'.$application->id.'/'.basename($profile->cv_path);
+
+            Storage::disk('local')->copy($profile->cv_path, $snapshotPath);
+            $application->update(['cv_path' => $snapshotPath]);
+        }
 
         return redirect()->route('candidate.applications.index')
             ->with('status', 'application-submitted');
     }
-}
 
+    private function isUniqueConstraintViolation(QueryException $exception): bool
+    {
+        $sqlState = (string) ($exception->errorInfo[0] ?? '');
+        $driverCode = (string) ($exception->errorInfo[1] ?? '');
+        $message = Str::lower($exception->getMessage());
+
+        return in_array($sqlState, ['23000', '23505'], true)
+            || in_array($driverCode, ['1062', '1555', '2067'], true)
+            || str_contains($message, 'unique constraint')
+            || str_contains($message, 'duplicate entry');
+    }
+}
