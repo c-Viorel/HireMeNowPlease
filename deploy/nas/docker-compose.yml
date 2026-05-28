@@ -1,0 +1,57 @@
+services:
+  app:
+    build:
+      context: ../..
+      dockerfile: deploy/nas/Dockerfile
+    image: hireme-app:latest
+    restart: unless-stopped
+    env_file:
+      - ../../.env
+    ports:
+      - "${HIREME_HTTP_BIND:-127.0.0.1}:${HIREME_HTTP_PORT:-8082}:80"
+    volumes:
+      - hireme_storage:/var/www/html/storage
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1/ >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 6
+      start_period: 40s
+
+  queue:
+    image: hireme-app:latest
+    restart: unless-stopped
+    env_file:
+      - ../../.env
+    command: ["php", "artisan", "queue:work", "database", "--queue=default", "--tries=3", "--sleep=3"]
+    volumes:
+      - hireme_storage:/var/www/html/storage
+    depends_on:
+      db:
+        condition: service_healthy
+      app:
+        condition: service_started
+
+  db:
+    image: mariadb:11.4
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${DB_DATABASE:-hireme}
+      MARIADB_USER: ${DB_USERNAME:-hireme}
+      MARIADB_PASSWORD: ${DB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - hireme_db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "healthcheck.sh --connect --innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  hireme_db:
+  hireme_storage:
