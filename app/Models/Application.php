@@ -26,6 +26,8 @@ class Application extends Model
         return [
             'status' => ApplicationStatus::class,
             'profile_snapshot' => 'array',
+            'fit_snapshot' => 'array',
+            'responsiveness_snapshot' => 'array',
         ];
     }
 
@@ -47,5 +49,10 @@ class Application extends Model
     public function conversation(): HasOne
     {
         return $this->hasOne(Conversation::class);
+    }
+
+    public function scorecard(): HasOne
+    {
+        return $this->hasOne(InterviewScorecard::class);
     }
 }

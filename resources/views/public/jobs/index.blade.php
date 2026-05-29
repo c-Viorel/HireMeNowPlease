@@ -52,7 +52,15 @@
                 <article class="rounded-lg border border-slate-200 bg-white p-5">
                     <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                         <div class="min-w-0">
-                            <p class="text-sm text-slate-500">{{ $job->company->name }}</p>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <p class="text-sm text-slate-500">{{ $job->company->name }}</p>
+                                @php($companyResponse = $responsiveness[$job->company_id] ?? null)
+                                @if ($companyResponse)
+                                    <span class="rounded-md bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-900">
+                                        Anti-ghosting {{ $companyResponse['score'] }}%
+                                    </span>
+                                @endif
+                            </div>
                             <h2 class="mt-1 text-xl font-semibold text-slate-950">
                                 <a href="{{ route('jobs.show', [$job->company, $job]) }}" class="hover:text-emerald-700">{{ $job->title }}</a>
                             </h2>

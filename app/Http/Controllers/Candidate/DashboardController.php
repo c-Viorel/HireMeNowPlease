@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Candidate;
 
 use App\Http\Controllers\Controller;
 use App\Models\Conversation;
+use App\Models\Job;
+use App\Support\Copilot\CandidateCoach;
+use App\Support\Insights\JobFitScorer;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request, CandidateCoach $candidateCoach, JobFitScorer $fitScorer): View
     {
         $user = $request->user();
         $profile = $user->candidateProfile?->loadMissing([
@@ -33,9 +36,31 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
+        $bestMatches = collect();
+
+        if ($profile) {
+            $appliedJobIds = $user->applications()->pluck('job_id');
+            $bestMatches = Job::query()
+                ->with('company')
+                ->publiclyVisible()
+                ->whereNotIn('id', $appliedJobIds)
+                ->latest('published_at')
+                ->take(24)
+                ->get()
+                ->map(fn (Job $job) => [
+                    'job' => $job,
+                    'fit' => $fitScorer->score($profile, $job)->toArray(),
+                ])
+                ->sortByDesc('fit.score')
+                ->take(4)
+                ->values();
+        }
+
         return view('candidate.dashboard', [
             'profile' => $profile,
             'profileCompletion' => $this->profileCompletion($profile),
+            'profileCoach' => $candidateCoach->profileAdvice($profile),
+            'bestMatches' => $bestMatches,
             'recentApplications' => $recentApplications,
             'recentConversations' => $recentConversations,
         ]);

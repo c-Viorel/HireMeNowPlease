@@ -15,6 +15,8 @@ use App\Models\Job;
 use App\Models\Message;
 use App\Models\Shortlist;
 use App\Models\User;
+use App\Support\Insights\CompanyResponsivenessScorer;
+use App\Support\Insights\JobFitScorer;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -199,6 +201,7 @@ class DemoDataSeeder extends Seeder
 
             if (in_array($status, [ApplicationStatus::Shortlisted, ApplicationStatus::Interview, ApplicationStatus::Accepted], true)) {
                 $this->upsertShortlist($application);
+                $this->upsertScorecard($application, $demoEmployer, $scenarioIndex);
             }
         }
 
@@ -224,6 +227,7 @@ class DemoDataSeeder extends Seeder
 
                 if (in_array($status, [ApplicationStatus::Shortlisted, ApplicationStatus::Interview, ApplicationStatus::Accepted], true)) {
                     $this->upsertShortlist($application);
+                    $this->upsertScorecard($application, $demoEmployer, $candidateIndex + $applicationIndex);
                 }
             }
         }
@@ -280,6 +284,8 @@ class DemoDataSeeder extends Seeder
                 'message' => $message,
                 'cv_path' => null,
                 'profile_snapshot' => $profile->fresh()->snapshot(),
+                'fit_snapshot' => app(JobFitScorer::class)->score($profile->fresh(), $job)->toArray(),
+                'responsiveness_snapshot' => app(CompanyResponsivenessScorer::class)->scoreJob($job),
                 'status' => $status,
                 'created_at' => now()->subDays(18 - ($ageIndex % 18))->subHours($ageIndex % 9),
                 'updated_at' => now()->subDays(12 - ($ageIndex % 12))->subMinutes($ageIndex * 3),
@@ -438,6 +444,36 @@ class DemoDataSeeder extends Seeder
                 'updated_at' => $application->updated_at,
             ]
         );
+    }
+
+    private function upsertScorecard(Application $application, User $reviewer, int $index): void
+    {
+        $criteria = ['Role fit', 'Technical / functional depth', 'Communication', 'Ownership', 'Motivation'];
+        $baseScore = 3 + ($index % 3);
+
+        $scorecard = $application->scorecard()->updateOrCreate(
+            ['reviewer_id' => $reviewer->id],
+            [
+                'overall_score' => min(100, $baseScore * 20),
+                'recommendation' => $baseScore >= 5 ? 'strong_yes' : ($baseScore >= 4 ? 'yes' : 'hold'),
+                'notes' => 'Scorecard demo completat pe baza profilului, mesajului si conversatiei candidatului.',
+                'completed_at' => $application->updated_at,
+            ]
+        );
+
+        $scorecard->items()->delete();
+
+        foreach ($criteria as $criterionIndex => $criterion) {
+            $score = max(1, min(5, $baseScore - ($criterionIndex % 2)));
+
+            $scorecard->items()->create([
+                'criterion' => $criterion,
+                'score' => $score,
+                'evidence' => "Evidenta demo pentru {$criterion}: profilul include semnale relevante si exemple discutabile in interviu.",
+                'created_at' => $application->updated_at,
+                'updated_at' => $application->updated_at,
+            ]);
+        }
     }
 
     private function statusFor(int $candidateIndex, int $applicationIndex): ApplicationStatus

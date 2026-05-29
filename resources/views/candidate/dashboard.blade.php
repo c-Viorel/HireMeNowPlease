@@ -29,6 +29,38 @@
                 </div>
             </section>
 
+            <div class="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+                <x-insights.profile-coach-card :coach="$profileCoach" />
+
+                <section class="bg-white p-6 shadow-sm sm:rounded-lg">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <h3 class="text-base font-semibold text-gray-900">Best matches for you</h3>
+                            <p class="mt-1 text-sm text-gray-600">Roluri ordonate dupa potrivirea cu profilul tau structurat.</p>
+                        </div>
+                        <a href="{{ route('jobs.index') }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-700">Explore</a>
+                    </div>
+                    <div class="mt-5 space-y-4">
+                        @forelse ($bestMatches as $match)
+                            <article class="rounded-lg border border-gray-200 p-4">
+                                <div class="flex items-start justify-between gap-4">
+                                    <div>
+                                        <p class="text-sm text-gray-600">{{ $match['job']->company->name }}</p>
+                                        <a href="{{ route('jobs.show', [$match['job']->company, $match['job']]) }}" class="mt-1 block font-semibold text-gray-900 hover:text-indigo-700">
+                                            {{ $match['job']->title }}
+                                        </a>
+                                    </div>
+                                    <span class="rounded-md bg-sky-50 px-3 py-1 text-sm font-bold text-sky-900">{{ $match['fit']['score'] }}%</span>
+                                </div>
+                                <p class="mt-2 text-sm text-gray-600">{{ $match['fit']['recommendation'] }}</p>
+                            </article>
+                        @empty
+                            <p class="text-sm text-gray-600">Completeaza profilul ca sa primesti potriviri explicabile.</p>
+                        @endforelse
+                    </div>
+                </section>
+            </div>
+
             <div class="grid gap-6 lg:grid-cols-2">
                 <section class="bg-white shadow-sm sm:rounded-lg">
                     <div class="border-b border-gray-100 px-6 py-4">

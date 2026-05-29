@@ -9,6 +9,8 @@ use App\Models\Company;
 use App\Models\Job;
 use App\Notifications\NewApplicationNotification;
 use App\Support\ApplicationSubmissions;
+use App\Support\Insights\CompanyResponsivenessScorer;
+use App\Support\Insights\JobFitScorer;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -29,7 +31,13 @@ class ApplicationController extends Controller
         ]);
     }
 
-    public function store(ApplicationRequest $request, Company $company, Job $job): RedirectResponse
+    public function store(
+        ApplicationRequest $request,
+        Company $company,
+        Job $job,
+        JobFitScorer $fitScorer,
+        CompanyResponsivenessScorer $responsivenessScorer
+    ): RedirectResponse
     {
         abort_unless(
             Job::query()
@@ -62,6 +70,8 @@ class ApplicationController extends Controller
             'message' => $request->validated('message'),
             'cv_path' => null,
             'profile_snapshot' => $profile->snapshot(),
+            'fit_snapshot' => $fitScorer->score($profile, $job)->toArray(),
+            'responsiveness_snapshot' => $responsivenessScorer->scoreJob($job),
             'status' => ApplicationStatus::Submitted,
         ]);
 

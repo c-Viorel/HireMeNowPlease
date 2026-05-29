@@ -6,6 +6,8 @@
         $certifications = $profileSnapshot['certifications'] ?? [];
         $links = $profileSnapshot['links'] ?? [];
         $jobPreference = $profileSnapshot['job_preference'] ?? null;
+        $scorecard = $application->scorecard;
+        $scorecardItems = $scorecard?->items?->keyBy('criterion') ?? collect();
         $formatDate = fn ($date) => $date ? \Illuminate\Support\Carbon::parse($date)->format('M Y') : null;
     @endphp
 
@@ -91,6 +93,11 @@
                     </div>
                 </div>
             </section>
+
+            <div class="grid gap-6 lg:grid-cols-2">
+                <x-insights.job-fit-card :fit-score="$fitScore" title="Explainable Fit Score" />
+                <x-insights.hr-copilot-card :brief="$copilotBrief" />
+            </div>
 
             <section class="bg-white p-6 shadow-sm sm:rounded-lg">
                 <h3 class="text-lg font-semibold text-gray-900">Experience</h3>
@@ -194,6 +201,68 @@
                         </div>
                     </div>
                 </div>
+            </section>
+
+            <section class="bg-white p-6 shadow-sm sm:rounded-lg">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">Structured interview scorecard</h3>
+                        <p class="mt-1 text-sm text-gray-600">Evalueaza consecvent candidatii pe criterii comune, cu dovezi din interviu.</p>
+                    </div>
+                    @if ($scorecard)
+                        <div class="rounded-md bg-indigo-50 px-3 py-2 text-sm font-semibold text-indigo-900">
+                            {{ $scorecard->overall_score }}% · {{ str($scorecard->recommendation)->replace('_', ' ')->title() }}
+                        </div>
+                    @endif
+                </div>
+
+                <form method="POST" action="{{ route('employer.applications.scorecard', $application) }}" class="mt-5 space-y-5">
+                    @csrf
+
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <div>
+                            <label for="recommendation" class="block text-sm font-medium text-gray-700">Recommendation</label>
+                            <select id="recommendation" name="recommendation" class="mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-600 focus:ring-indigo-600">
+                                @foreach (['strong_yes' => 'Strong yes', 'yes' => 'Yes', 'hold' => 'Hold', 'no' => 'No'] as $value => $label)
+                                    <option value="{{ $value }}" @selected(old('recommendation', $scorecard?->recommendation ?? 'hold') === $value)>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                            @error('recommendation')
+                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div>
+                            <label for="notes" class="block text-sm font-medium text-gray-700">Overall notes</label>
+                            <textarea id="notes" name="notes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-600 focus:ring-indigo-600">{{ old('notes', $scorecard?->notes) }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="grid gap-4">
+                        @foreach ($scorecardCriteria as $index => $criterion)
+                            @php($item = $scorecardItems->get($criterion))
+                            <div class="rounded-lg border border-gray-200 p-4">
+                                <input type="hidden" name="items[{{ $index }}][criterion]" value="{{ $criterion }}">
+                                <div class="grid gap-4 md:grid-cols-[1fr_9rem]">
+                                    <div>
+                                        <p class="text-sm font-semibold text-gray-900">{{ $criterion }}</p>
+                                        <label for="items_{{ $index }}_evidence" class="sr-only">Evidence</label>
+                                        <textarea id="items_{{ $index }}_evidence" name="items[{{ $index }}][evidence]" rows="2" class="mt-2 block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-600 focus:ring-indigo-600" placeholder="Evidence from interview">{{ old("items.$index.evidence", $item?->evidence) }}</textarea>
+                                    </div>
+                                    <div>
+                                        <label for="items_{{ $index }}_score" class="block text-sm font-medium text-gray-700">Score</label>
+                                        <select id="items_{{ $index }}_score" name="items[{{ $index }}][score]" class="mt-2 block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-600 focus:ring-indigo-600">
+                                            @for ($score = 1; $score <= 5; $score++)
+                                                <option value="{{ $score }}" @selected((int) old("items.$index.score", $item?->score ?? 3) === $score)>{{ $score }}/5</option>
+                                            @endfor
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    <button type="submit" class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">Save scorecard</button>
+                </form>
             </section>
 
             <section class="bg-white p-6 shadow-sm sm:rounded-lg">

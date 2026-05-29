@@ -104,6 +104,8 @@
                     <p class="rounded-md bg-green-50 px-4 py-3 text-sm font-medium text-green-800">Profile updated.</p>
                 @endif
 
+                <x-insights.profile-coach-card :coach="$profileCoach" />
+
                 <section class="bg-white p-6 shadow-sm sm:rounded-lg">
                     <div class="grid gap-6 lg:grid-cols-[1fr_18rem]">
                         <div class="space-y-5">

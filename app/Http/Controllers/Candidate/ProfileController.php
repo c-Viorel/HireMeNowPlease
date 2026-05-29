@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Candidate;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CandidateProfileRequest;
 use App\Models\CandidateProfile;
+use App\Support\Copilot\CandidateCoach;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
@@ -13,16 +14,19 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ProfileController extends Controller
 {
-    public function edit(): View
+    public function edit(CandidateCoach $candidateCoach): View
     {
+        $profile = auth()->user()->candidateProfile?->load([
+            'experiences',
+            'educations',
+            'certifications',
+            'links',
+            'jobPreference',
+        ]);
+
         return view('candidate.profile.edit', [
-            'profile' => auth()->user()->candidateProfile?->load([
-                'experiences',
-                'educations',
-                'certifications',
-                'links',
-                'jobPreference',
-            ]),
+            'profile' => $profile,
+            'profileCoach' => $candidateCoach->profileAdvice($profile),
         ]);
     }
 

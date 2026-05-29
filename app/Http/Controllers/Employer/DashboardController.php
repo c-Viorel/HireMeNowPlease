@@ -7,12 +7,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Company;
 use App\Models\Job;
 use App\Models\Message;
+use App\Support\Insights\CompanyResponsivenessScorer;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request, CompanyResponsivenessScorer $responsivenessScorer): View
     {
         $employerId = $request->user()->id;
 
@@ -42,10 +43,18 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
+        $responseHealth = $companies
+            ->map(fn (Company $company) => [
+                'company' => $company,
+                'score' => $responsivenessScorer->scoreCompany($company),
+            ])
+            ->values();
+
         return view('employer.dashboard', [
             'companies' => $companies,
             'activeJobs' => $activeJobs,
             'latestMessages' => $latestMessages,
+            'responseHealth' => $responseHealth,
         ]);
     }
 }

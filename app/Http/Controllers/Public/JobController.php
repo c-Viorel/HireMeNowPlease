@@ -7,13 +7,16 @@ use App\Enums\WorkplaceType;
 use App\Http\Controllers\Controller;
 use App\Models\Company;
 use App\Models\Job;
+use App\Support\Copilot\CandidateCoach;
+use App\Support\Insights\CompanyResponsivenessScorer;
+use App\Support\Insights\JobFitScorer;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class JobController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request, CompanyResponsivenessScorer $responsivenessScorer): View
     {
         $filters = $request->validate([
             'q' => ['nullable', 'string', 'max:120'],
@@ -53,15 +56,27 @@ class JobController extends Controller
             ->paginate(12)
             ->withQueryString();
 
+        $responsiveness = $jobs->getCollection()
+            ->pluck('company')
+            ->unique('id')
+            ->mapWithKeys(fn ($company) => [$company->id => $responsivenessScorer->scoreCompany($company)]);
+
         return view('public.jobs.index', [
             'jobs' => $jobs,
             'filters' => $filters,
             'employmentTypes' => EmploymentType::cases(),
             'workplaceTypes' => WorkplaceType::cases(),
+            'responsiveness' => $responsiveness,
         ]);
     }
 
-    public function show(Company $company, Job $job): View
+    public function show(
+        Company $company,
+        Job $job,
+        JobFitScorer $fitScorer,
+        CompanyResponsivenessScorer $responsivenessScorer,
+        CandidateCoach $candidateCoach
+    ): View
     {
         abort_unless(
             Job::query()
@@ -73,9 +88,14 @@ class JobController extends Controller
         );
 
         $job->loadMissing('company');
+        $candidateProfile = auth()->user()?->candidateProfile;
+        $fitScore = $candidateProfile ? $fitScorer->score($candidateProfile, $job)->toArray() : null;
 
         return view('public.jobs.show', [
             'job' => $job,
+            'fitScore' => $fitScore,
+            'candidateAdvice' => $candidateProfile ? $candidateCoach->jobAdvice($candidateProfile, $job) : null,
+            'responsivenessScore' => $responsivenessScorer->scoreCompany($company),
         ]);
     }
 }

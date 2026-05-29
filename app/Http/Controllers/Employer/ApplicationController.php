@@ -6,6 +6,8 @@ use App\Enums\ApplicationStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Application;
 use App\Notifications\ApplicationStatusChangedNotification;
+use App\Support\Copilot\HrCopilot;
+use App\Support\Insights\JobFitScorer;
 use App\Support\Shortlists;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -29,7 +31,7 @@ class ApplicationController extends Controller
         ]);
     }
 
-    public function show(Application $application): View
+    public function show(Application $application, HrCopilot $copilot, JobFitScorer $fitScorer): View
     {
         $this->authorizeOwner($application);
 
@@ -42,8 +44,12 @@ class ApplicationController extends Controller
                 'candidateProfile.links',
                 'candidateProfile.jobPreference',
                 'job.company',
+                'scorecard.items',
             ]),
             'statuses' => $this->statusValues(),
+            'fitScore' => $application->fit_snapshot ?: $fitScorer->score($application->profile_snapshot ?: $application->candidateProfile?->snapshot(), $application->job)->toArray(),
+            'copilotBrief' => $copilot->brief($application),
+            'scorecardCriteria' => ['Role fit', 'Technical / functional depth', 'Communication', 'Ownership', 'Motivation'],
         ]);
     }
 

@@ -65,6 +65,19 @@
 
             <section class="bg-white shadow-sm sm:rounded-lg">
                 <div class="border-b border-gray-100 px-6 py-4">
+                    <h3 class="text-base font-semibold text-gray-900">Candidate experience health</h3>
+                </div>
+                <div class="grid gap-4 p-6 lg:grid-cols-3">
+                    @forelse ($responseHealth as $health)
+                        <x-insights.responsiveness-card :score="$health['score']" :label="$health['company']->name" compact="true" class="bg-amber-50" />
+                    @empty
+                        <p class="text-sm text-gray-600">No company response data yet.</p>
+                    @endforelse
+                </div>
+            </section>
+
+            <section class="bg-white shadow-sm sm:rounded-lg">
+                <div class="border-b border-gray-100 px-6 py-4">
                     <h3 class="text-base font-semibold text-gray-900">Latest messages</h3>
                 </div>
                 <div class="divide-y divide-gray-100">
