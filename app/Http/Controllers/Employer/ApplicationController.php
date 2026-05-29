@@ -34,7 +34,15 @@ class ApplicationController extends Controller
         $this->authorizeOwner($application);
 
         return view('employer.applications.show', [
-            'application' => $application->load(['candidate', 'candidateProfile', 'job.company']),
+            'application' => $application->load([
+                'candidate',
+                'candidateProfile.experiences',
+                'candidateProfile.educations',
+                'candidateProfile.certifications',
+                'candidateProfile.links',
+                'candidateProfile.jobPreference',
+                'job.company',
+            ]),
             'statuses' => $this->statusValues(),
         ]);
     }

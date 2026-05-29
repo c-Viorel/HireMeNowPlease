@@ -35,7 +35,7 @@ class DemoDataSeeder extends Seeder
             ]
         );
 
-        CandidateProfile::updateOrCreate(
+        $demoProfile = CandidateProfile::updateOrCreate(
             ['user_id' => $candidate->id],
             [
                 'phone' => '+40 721 000 101',
@@ -58,6 +58,15 @@ class DemoDataSeeder extends Seeder
                 'cv_path' => null,
             ]
         );
+        $this->syncStructuredProfile($demoProfile, [
+            'headline' => 'Product-minded QA Analyst deschis pentru roluri remote',
+            'location' => 'Bucuresti',
+            'skills' => ['QA manual', 'SQL', 'Jira', 'API testing', 'Scrum', 'Customer empathy'],
+            'experience' => [
+                ['title' => 'QA Analyst', 'company' => 'Northstar Digital', 'years' => 4],
+                ['title' => 'Customer Support Specialist', 'company' => 'Atlas Support', 'years' => 2],
+            ],
+        ], 0);
 
         $employer = User::updateOrCreate(
             ['email' => 'hr@hireme.local'],
@@ -236,7 +245,7 @@ class DemoDataSeeder extends Seeder
             ]
         );
 
-        CandidateProfile::updateOrCreate(
+        $profile = CandidateProfile::updateOrCreate(
             ['user_id' => $candidate->id],
             [
                 'phone' => '+40 72'.($index + 2).' 000 '.str_pad((string) ($index + 11), 3, '0', STR_PAD_LEFT),
@@ -248,6 +257,7 @@ class DemoDataSeeder extends Seeder
                 'cv_path' => null,
             ]
         );
+        $this->syncStructuredProfile($profile, $persona, $index + 1);
 
         return $candidate;
     }
@@ -269,11 +279,98 @@ class DemoDataSeeder extends Seeder
                 'candidate_profile_id' => $profile->id,
                 'message' => $message,
                 'cv_path' => null,
+                'profile_snapshot' => $profile->fresh()->snapshot(),
                 'status' => $status,
                 'created_at' => now()->subDays(18 - ($ageIndex % 18))->subHours($ageIndex % 9),
                 'updated_at' => now()->subDays(12 - ($ageIndex % 12))->subMinutes($ageIndex * 3),
             ]
         );
+    }
+
+    /**
+     * @param  array<string, mixed>  $persona
+     */
+    private function syncStructuredProfile(CandidateProfile $profile, array $persona, int $index): void
+    {
+        $profile->experiences()->delete();
+        $profile->educations()->delete();
+        $profile->certifications()->delete();
+        $profile->links()->delete();
+
+        foreach ($persona['experience'] as $experienceIndex => $experience) {
+            $startYear = 2024 - (int) ($experience['years'] ?? 3) - $experienceIndex;
+
+            $profile->experiences()->create([
+                'title' => $experience['title'],
+                'company' => $experience['company'],
+                'employment_type' => $experienceIndex === 0 ? 'full_time' : 'contract',
+                'location' => $persona['location'] ?? 'Remote, Romania',
+                'workplace_type' => str_contains((string) ($persona['location'] ?? ''), 'Remote') ? 'remote' : ($experienceIndex === 0 ? 'hybrid' : 'remote'),
+                'start_date' => "{$startYear}-03-01",
+                'end_date' => $experienceIndex === 0 ? null : ($startYear + (int) ($experience['years'] ?? 2)).'-02-01',
+                'is_current' => $experienceIndex === 0,
+                'description' => $this->profileExperienceDescription($persona, $experience),
+                'skills' => array_slice($persona['skills'], 0, 4),
+                'sort_order' => $experienceIndex,
+            ]);
+        }
+
+        $profile->educations()->create([
+            'institution' => ['Universitatea Bucuresti', 'Universitatea Babes-Bolyai', 'Universitatea Alexandru Ioan Cuza', 'Politehnica Timisoara'][$index % 4],
+            'degree' => $index % 3 === 0 ? 'Master' : 'Licenta',
+            'field_of_study' => $index % 2 === 0 ? 'Informatica economica' : 'Computer Science',
+            'start_date' => '2015-10-01',
+            'end_date' => '2018-07-01',
+            'is_current' => false,
+            'description' => 'Proiecte aplicate, baze de date, analiza de produs si lucru in echipe multidisciplinare.',
+            'sort_order' => 0,
+        ]);
+
+        $profile->certifications()->create([
+            'name' => $index % 2 === 0 ? 'Agile Product Delivery' : 'Professional Skills Certificate',
+            'issuer' => $index % 2 === 0 ? 'Scrum.org' : 'LinkedIn Learning',
+            'issued_at' => '2023-05-01',
+            'expires_at' => null,
+            'credential_url' => 'https://example.com/credentials/'.Str::slug((string) ($persona['headline'] ?? 'candidate')),
+            'sort_order' => 0,
+        ]);
+
+        $profile->links()->create([
+            'label' => 'LinkedIn',
+            'url' => 'https://linkedin.com/in/'.Str::slug((string) ($persona['name'] ?? 'ana-popescu')),
+            'sort_order' => 0,
+        ]);
+
+        if (str_contains(implode(' ', $persona['skills']), 'Laravel') || str_contains(implode(' ', $persona['skills']), 'Python')) {
+            $profile->links()->create([
+                'label' => 'Portfolio',
+                'url' => 'https://portfolio.example/'.Str::slug((string) ($persona['name'] ?? 'candidate')),
+                'sort_order' => 1,
+            ]);
+        }
+
+        $profile->jobPreference()->updateOrCreate(
+            [],
+            [
+                'availability' => $index % 3 === 0 ? 'Immediate' : '30 days',
+                'experience_level' => $index % 4 === 0 ? 'senior' : 'mid',
+                'desired_salary_min' => 9000 + ($index * 700),
+                'desired_salary_max' => 14000 + ($index * 900),
+                'preferred_workplace_types' => $index % 2 === 0 ? ['remote', 'hybrid'] : ['hybrid', 'on_site'],
+                'preferred_employment_types' => ['full_time', 'contract'],
+            ]
+        );
+    }
+
+    /**
+     * @param  array<string, mixed>  $persona
+     * @param  array<string, mixed>  $experience
+     */
+    private function profileExperienceDescription(array $persona, array $experience): string
+    {
+        $skills = implode(', ', array_slice($persona['skills'], 0, 3));
+
+        return "A lucrat ca {$experience['title']} cu focus pe {$skills}. A contribuit la initiative masurabile, colaborare cross-functional si documentarea deciziilor importante.";
     }
 
     private function seedConversation(Application $application, User $candidate, User $employer, int $threadIndex): void

@@ -72,7 +72,8 @@ it('lets a verified candidate apply once and lets employer update status', funct
     expect($application->candidate_profile_id)->toBe($profile->id)
         ->and($application->cv_path)->toStartWith("applications/{$application->id}/")
         ->and($application->cv_path)->not->toBe($profile->cv_path)
-        ->and($application->status)->toBe(ApplicationStatus::Submitted);
+        ->and($application->status)->toBe(ApplicationStatus::Submitted)
+        ->and($application->profile_snapshot['headline'])->toBe($profile->headline);
 
     Storage::disk('local')->assertExists($application->cv_path);
 
@@ -84,6 +85,84 @@ it('lets a verified candidate apply once and lets employer update status', funct
         'id' => $application->id,
         'status' => 'viewed',
     ]);
+});
+
+it('captures a structured profile snapshot when a candidate applies', function () {
+    Storage::fake('local');
+    $candidate = User::factory()->create(['role' => UserRole::Candidate, 'email_verified_at' => now()]);
+    $profile = CandidateProfile::factory()->for($candidate, 'user')->create([
+        'headline' => 'Senior Laravel Engineer',
+        'summary' => 'Builds serious recruitment products.',
+        'skills' => ['PHP', 'Laravel', 'MySQL'],
+    ]);
+
+    expect(method_exists($profile, 'experiences'))->toBeTrue()
+        ->and(method_exists($profile, 'educations'))->toBeTrue()
+        ->and(method_exists($profile, 'jobPreference'))->toBeTrue();
+
+    $profile->experiences()->create([
+        'title' => 'Senior Laravel Engineer',
+        'company' => 'Product Labs',
+        'employment_type' => 'full_time',
+        'location' => 'Remote',
+        'workplace_type' => 'remote',
+        'start_date' => '2021-01-01',
+        'end_date' => null,
+        'is_current' => true,
+        'description' => 'Owned the recruitment platform.',
+        'skills' => ['Laravel', 'API design'],
+        'sort_order' => 0,
+    ]);
+    $profile->educations()->create([
+        'institution' => 'Universitatea Bucuresti',
+        'degree' => 'Licenta',
+        'field_of_study' => 'Informatica',
+        'start_date' => '2016-10-01',
+        'end_date' => '2019-07-01',
+        'is_current' => false,
+        'sort_order' => 0,
+    ]);
+    $profile->jobPreference()->create([
+        'availability' => '30 days',
+        'experience_level' => 'senior',
+        'desired_salary_min' => 18000,
+        'desired_salary_max' => 26000,
+        'preferred_workplace_types' => ['remote', 'hybrid'],
+        'preferred_employment_types' => ['full_time'],
+    ]);
+
+    $company = applicationWorkflowApprovedCompany();
+    $job = Job::factory()->for($company)->create(['status' => JobStatus::Published]);
+
+    $this->actingAs($candidate)->post(route('jobs.apply', [$company, $job]), [
+        'message' => 'Please review my structured profile.',
+    ])->assertRedirect(route('candidate.applications.index'));
+
+    $application = Application::firstOrFail();
+
+    $profile->update(['headline' => 'Changed headline after applying']);
+    $profile->experiences()->first()->update(['title' => 'Changed role']);
+
+    expect($application->fresh()->profile_snapshot)
+        ->headline->toBe('Senior Laravel Engineer')
+        ->experiences->sequence(
+            fn ($experience) => $experience
+                ->title->toBe('Senior Laravel Engineer')
+                ->company->toBe('Product Labs')
+        )
+        ->educations->sequence(
+            fn ($education) => $education
+                ->institution->toBe('Universitatea Bucuresti')
+        )
+        ->job_preference->availability->toBe('30 days');
+
+    $this->actingAs($company->owner)->get(route('employer.applications.show', $application))
+        ->assertOk()
+        ->assertSee('Senior Laravel Engineer')
+        ->assertSee('Product Labs')
+        ->assertSee('Universitatea Bucuresti')
+        ->assertDontSee('Changed headline after applying')
+        ->assertDontSee('Changed role');
 });
 
 it('lets the owning employer download the captured application cv', function () {

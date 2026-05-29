@@ -25,6 +25,7 @@ class Application extends Model
     {
         return [
             'status' => ApplicationStatus::class,
+            'profile_snapshot' => 'array',
         ];
     }
 

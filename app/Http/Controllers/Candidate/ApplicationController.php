@@ -61,6 +61,7 @@ class ApplicationController extends Controller
             'candidate_profile_id' => $profile->id,
             'message' => $request->validated('message'),
             'cv_path' => null,
+            'profile_snapshot' => $profile->snapshot(),
             'status' => ApplicationStatus::Submitted,
         ]);
 

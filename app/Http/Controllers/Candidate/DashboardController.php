@@ -12,7 +12,13 @@ class DashboardController extends Controller
     public function __invoke(Request $request): View
     {
         $user = $request->user();
-        $profile = $user->candidateProfile;
+        $profile = $user->candidateProfile?->loadMissing([
+            'experiences',
+            'educations',
+            'certifications',
+            'links',
+            'jobPreference',
+        ]);
 
         $recentApplications = $user->applications()
             ->with('job.company')
@@ -47,12 +53,16 @@ class DashboardController extends Controller
             $profile->headline,
             $profile->summary,
             $profile->skills,
-            $profile->experience,
+            $profile->experiences,
+            $profile->educations,
+            $profile->certifications,
+            $profile->links,
+            $profile->jobPreference,
             $profile->cv_path,
         ];
 
         $completed = collect($fields)
-            ->filter(fn ($value) => is_array($value) ? count($value) > 0 : filled($value))
+            ->filter(fn ($value) => is_countable($value) ? count($value) > 0 : filled($value))
             ->count();
 
         return (int) round(($completed / count($fields)) * 100);

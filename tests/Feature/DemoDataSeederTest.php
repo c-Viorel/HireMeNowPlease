@@ -22,6 +22,9 @@ it('seeds public demo accounts and a full demo job catalog', function () {
     expect($candidate)->not->toBeNull()
         ->and($candidate->role)->toBe(UserRole::Candidate)
         ->and($candidate->candidateProfile)->not->toBeNull()
+        ->and($candidate->candidateProfile->experiences)->not->toBeEmpty()
+        ->and($candidate->candidateProfile->educations)->not->toBeEmpty()
+        ->and($candidate->candidateProfile->jobPreference)->not->toBeNull()
         ->and(Hash::check('demo1234', $candidate->password))->toBeTrue()
         ->and($employer)->not->toBeNull()
         ->and($employer->role)->toBe(UserRole::Employer)
@@ -70,5 +73,7 @@ it('seeds demo applications, conversations, messages, and shortlist activity ide
         ->and(Shortlist::count())->toBeGreaterThanOrEqual(12);
 
     expect($candidateApplications->filter(fn (Application $application) => $application->conversation?->messages->isNotEmpty()))->toHaveCount(7);
+    expect($candidateApplications->whereNotNull('profile_snapshot'))->toHaveCount(10);
+    expect($candidateApplications->first()->profile_snapshot['experiences'] ?? [])->not->toBeEmpty();
     expect(Application::query()->selectRaw('job_id, candidate_id, count(*) as duplicate_count')->groupBy('job_id', 'candidate_id')->having('duplicate_count', '>', 1)->count())->toBe(0);
 });

@@ -24,7 +24,58 @@ it('lets a candidate update their profile and upload a cv', function () {
         'location' => 'Bucuresti',
         'headline' => 'Laravel Developer',
         'summary' => 'I build marketplace products.',
-        'experience' => '3 years building marketplace products for SaaS teams.',
+        'experience_level' => 'mid',
+        'availability' => '30 days',
+        'desired_salary_min' => 12000,
+        'desired_salary_max' => 18000,
+        'preferred_workplace_types' => ['remote', 'hybrid'],
+        'preferred_employment_types' => ['full_time', 'contract'],
+        'experiences' => [
+            [
+                'title' => 'Laravel Developer',
+                'company' => 'Marketplace Studio',
+                'employment_type' => 'full_time',
+                'location' => 'Bucuresti',
+                'workplace_type' => 'hybrid',
+                'start_date' => '2021-03-01',
+                'end_date' => '2024-05-01',
+                'description' => 'Built marketplace products for SaaS teams.',
+                'skills' => 'PHP, Laravel, MySQL',
+            ],
+            [
+                'title' => 'Senior PHP Developer',
+                'company' => 'Current Labs',
+                'employment_type' => 'contract',
+                'location' => 'Remote',
+                'workplace_type' => 'remote',
+                'start_date' => '2024-06-01',
+                'is_current' => '1',
+                'description' => 'Owns backend services and integrations.',
+                'skills' => 'API design, Redis',
+            ],
+        ],
+        'educations' => [
+            [
+                'institution' => 'Universitatea Bucuresti',
+                'degree' => 'Licenta',
+                'field_of_study' => 'Informatica',
+                'start_date' => '2016-10-01',
+                'end_date' => '2019-07-01',
+                'description' => 'Software engineering and databases.',
+            ],
+        ],
+        'certifications' => [
+            [
+                'name' => 'Laravel Certification',
+                'issuer' => 'Laravel',
+                'issued_at' => '2023-04-01',
+                'credential_url' => 'https://example.com/cert',
+            ],
+        ],
+        'links' => [
+            ['label' => 'LinkedIn', 'url' => 'https://linkedin.com/in/demo'],
+            ['label' => 'GitHub', 'url' => 'https://github.com/demo'],
+        ],
         'skills' => 'PHP, Laravel, , MySQL',
         'cv' => UploadedFile::fake()->create('cv.pdf', 256, 'application/pdf'),
     ])->assertRedirect('/candidate/profile');
@@ -36,8 +87,21 @@ it('lets a candidate update their profile and upload a cv', function () {
 
     $profile = $candidate->fresh()->candidateProfile;
 
+    expect(method_exists($profile, 'experiences'))->toBeTrue()
+        ->and(method_exists($profile, 'educations'))->toBeTrue()
+        ->and(method_exists($profile, 'certifications'))->toBeTrue()
+        ->and(method_exists($profile, 'links'))->toBeTrue()
+        ->and(method_exists($profile, 'jobPreference'))->toBeTrue();
+
     expect($profile->skills)->toBe(['PHP', 'Laravel', 'MySQL'])
-        ->and($profile->experience)->toBe(['3 years building marketplace products for SaaS teams.'])
+        ->and($profile->experiences)->toHaveCount(2)
+        ->and($profile->experiences->first()->title)->toBe('Laravel Developer')
+        ->and($profile->experiences->last()->is_current)->toBeTrue()
+        ->and($profile->educations)->toHaveCount(1)
+        ->and($profile->certifications)->toHaveCount(1)
+        ->and($profile->links)->toHaveCount(2)
+        ->and($profile->jobPreference->availability)->toBe('30 days')
+        ->and($profile->jobPreference->preferred_workplace_types)->toBe(['remote', 'hybrid'])
         ->and($profile->cv_path)->not->toBeNull()
         ->and($profile->cv_path)->toStartWith("cvs/{$candidate->id}/");
 
@@ -46,6 +110,31 @@ it('lets a candidate update their profile and upload a cv', function () {
     $this->actingAs($candidate->fresh())->get('/candidate/dashboard')
         ->assertOk()
         ->assertSee('100%');
+});
+
+it('validates structured candidate profile dates', function () {
+    $candidate = User::factory()->create(['role' => UserRole::Candidate, 'email_verified_at' => now()]);
+
+    $this->actingAs($candidate)->from('/candidate/profile')->post('/candidate/profile', [
+        'headline' => 'Laravel Developer',
+        'experiences' => [
+            [
+                'title' => 'Developer',
+                'company' => 'Acme',
+                'start_date' => '2024-05-01',
+                'end_date' => '2024-01-01',
+            ],
+        ],
+        'educations' => [
+            [
+                'institution' => 'Demo University',
+                'degree' => 'Licenta',
+                'start_date' => '2021-10-01',
+                'end_date' => '2020-07-01',
+            ],
+        ],
+    ])->assertRedirect('/candidate/profile')
+        ->assertSessionHasErrors(['experiences.0.end_date', 'educations.0.end_date']);
 });
 
 it('preserves the current cv when updating without a new upload', function () {
