@@ -19,6 +19,9 @@
                     steps: ['Reading CV text', 'Extracting profile sections', 'Scoring CV appeal', 'Preparing review screen'],
                     activeStep: 0,
                     start() {
+                        if (this.analyzing) {
+                            return;
+                        }
                         this.analyzing = true;
                         this.activeStep = 0;
                         const timer = setInterval(() => {
@@ -49,14 +52,13 @@
                                 accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                                 class="mt-2 block w-full rounded-md border border-dashed border-gray-300 p-3 text-sm text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-gray-900 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-gray-700"
                                 @change="fileName = $event.target.files[0]?.name || ''"
-                                :disabled="analyzing"
                             >
                             <p class="mt-2 text-xs text-gray-500">PDF or DOCX, maximum 5 MB.</p>
                             <p class="mt-2 text-sm font-medium text-gray-700" x-show="fileName" x-text="fileName" x-cloak></p>
                             <x-input-error class="mt-2" :messages="$errors->get('cv')" />
                         </div>
 
-                        <button type="submit" class="btn-primary min-w-36" :disabled="analyzing" :class="analyzing ? 'cursor-not-allowed opacity-70' : ''">
+                        <button type="submit" class="btn-primary min-w-36" :class="analyzing ? 'pointer-events-none cursor-wait opacity-70' : ''">
                             <span x-show="!analyzing">Analyze CV</span>
                             <span x-show="analyzing" x-cloak>Analyzing...</span>
                         </button>
