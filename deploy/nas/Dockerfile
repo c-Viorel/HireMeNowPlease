@@ -30,6 +30,7 @@ RUN apt-get update \
         libicu-dev \
         libzip-dev \
         unzip \
+        zlib1g-dev \
     && docker-php-ext-install intl opcache pcntl pdo_mysql zip \
     && a2enmod headers rewrite \
     && rm -rf /var/lib/apt/lists/*

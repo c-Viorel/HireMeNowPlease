@@ -75,6 +75,7 @@
         <div class="flex flex-col gap-1">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Candidate Profile') }}</h2>
             <p class="text-sm text-gray-600">Build a profile recruiters can actually evaluate without opening a CV first.</p>
+            <a href="{{ route('candidate.profile.ai.create') }}" class="mt-3 inline-flex text-sm font-semibold text-indigo-600 hover:text-indigo-700">Import with AI from CV</a>
         </div>
     </x-slot>
 
@@ -102,6 +103,9 @@
 
                 @if (session('status') === 'candidate-profile-updated')
                     <p class="rounded-md bg-green-50 px-4 py-3 text-sm font-medium text-green-800">Profile updated.</p>
+                @endif
+                @if (session('status') === 'ai-cv-imported')
+                    <p class="rounded-md bg-green-50 px-4 py-3 text-sm font-medium text-green-800">AI extracted CV data was saved to your profile. Review the fields below before applying.</p>
                 @endif
 
                 <x-insights.profile-coach-card :coach="$profileCoach" />

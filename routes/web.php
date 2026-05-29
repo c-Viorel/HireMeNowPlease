@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\JobController as AdminJobController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Candidate\ApplicationController as CandidateApplicationController;
+use App\Http\Controllers\Candidate\AiCvImportController;
 use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\Candidate\DashboardController as CandidateDashboardController;
 use App\Http\Controllers\Candidate\ProfileController as CandidateProfileController;
@@ -51,6 +52,9 @@ Route::middleware(['auth', 'active', 'verified'])->group(function () {
         Route::get('/profile', [CandidateProfileController::class, 'edit'])->name('profile.edit');
         Route::post('/profile', [CandidateProfileController::class, 'update'])->name('profile.update');
         Route::get('/profile/cv', [CandidateProfileController::class, 'downloadCv'])->name('profile.cv');
+        Route::get('/profile/ai-import', [AiCvImportController::class, 'create'])->name('profile.ai.create');
+        Route::post('/profile/ai-import/preview', [AiCvImportController::class, 'preview'])->name('profile.ai.preview');
+        Route::post('/profile/ai-import/apply', [AiCvImportController::class, 'apply'])->name('profile.ai.apply');
     });
 
     Route::prefix('employer')->name('employer.')->middleware('role:employer')->group(function () {
