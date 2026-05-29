@@ -67,6 +67,11 @@
                         @if ($job->experience_level)
                             <div class="rounded-md bg-slate-100 px-3 py-1">{{ str($job->experience_level)->title() }}</div>
                         @endif
+                        @if ($job->salary_min || $job->salary_max)
+                            <div class="rounded-md bg-emerald-50 px-3 py-1 font-medium text-emerald-900">
+                                {{ $job->salary_min ? number_format($job->salary_min) : 'Nespecificat' }} - {{ $job->salary_max ? number_format($job->salary_max) : 'Nespecificat' }} RON
+                            </div>
+                        @endif
                     </dl>
                 </article>
             @empty
