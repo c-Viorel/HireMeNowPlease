@@ -158,6 +158,56 @@ it('requires a configured OpenAI API key for AI CV import', function () {
         ->assertSessionHasErrors('cv');
 });
 
+it('skips AI extracted experience rows that do not have a start date', function () {
+    Storage::fake('local');
+    $candidate = User::factory()->create(['role' => UserRole::Candidate, 'email_verified_at' => now()]);
+    $writer = app(\App\Support\Cv\CandidateProfileAiWriter::class);
+
+    $writer->save($candidate, [
+        'headline' => 'macOS Developer',
+        'summary' => 'Builds endpoint protection products.',
+        'phone' => '',
+        'location' => 'Bucharest',
+        'skills' => ['Swift', 'Objective-C'],
+        'experiences' => [
+            [
+                'title' => 'macOS Developer & Team Lead',
+                'company' => 'Heimdal Security',
+                'employment_type' => '',
+                'location' => 'Bucharest, Romania',
+                'workplace_type' => '',
+                'start_date' => '',
+                'end_date' => '',
+                'is_current' => true,
+                'description' => 'Led macOS endpoint development.',
+                'skills' => ['Swift', 'Objective-C'],
+            ],
+            [
+                'title' => 'iOS Developer',
+                'company' => 'Mobile Studio',
+                'employment_type' => 'full_time',
+                'location' => 'Bucharest',
+                'workplace_type' => 'hybrid',
+                'start_date' => '2020-01-01',
+                'end_date' => '',
+                'is_current' => false,
+                'description' => 'Built production apps.',
+                'skills' => ['Swift'],
+            ],
+        ],
+        'educations' => [],
+        'certifications' => [],
+        'links' => [],
+        'job_preference' => [],
+        'cv_analysis' => ['score' => 70, 'strengths' => [], 'improvements' => [], 'rewrite_suggestions' => []],
+    ], null, null);
+
+    $profile = $candidate->fresh()->candidateProfile;
+
+    expect($profile->experiences)->toHaveCount(1)
+        ->and($profile->experiences->first()->title)->toBe('iOS Developer');
+});
+
 function docxFixture(string $text): string
 {
     $path = tempnam(sys_get_temp_dir(), 'docx-fixture');

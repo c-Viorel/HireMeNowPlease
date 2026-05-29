@@ -71,7 +71,10 @@ class CandidateProfileAiWriter
         $profile->experiences()->delete();
 
         foreach ($rows as $index => $row) {
-            if (! is_array($row) || blank($row['title'] ?? null) || blank($row['company'] ?? null)) {
+            if (! is_array($row)
+                || blank($row['title'] ?? null)
+                || blank($row['company'] ?? null)
+                || ! $this->dateValue($row['start_date'] ?? null)) {
                 continue;
             }
 
