@@ -2,13 +2,18 @@
 
 namespace Database\Seeders;
 
+use App\Enums\ApplicationStatus;
 use App\Enums\EmploymentType;
 use App\Enums\JobStatus;
 use App\Enums\UserRole;
 use App\Enums\WorkplaceType;
+use App\Models\Application;
 use App\Models\CandidateProfile;
 use App\Models\Company;
+use App\Models\Conversation;
 use App\Models\Job;
+use App\Models\Message;
+use App\Models\Shortlist;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
@@ -119,6 +124,8 @@ class DemoDataSeeder extends Seeder
                 $jobIndex++;
             }
         }
+
+        $this->seedRecruitmentActivity($candidate, $employer);
     }
 
     /**
@@ -142,6 +149,242 @@ class DemoDataSeeder extends Seeder
             ['name' => 'GreenGrid Energy', 'slug' => 'greengrid-energy', 'location' => 'Oradea', 'website' => 'https://greengrid-energy.example', 'description' => 'Platforma de energie regenerabila pentru monitorizare, raportare si predictii de consum.'],
             ['name' => 'Craft Commerce', 'slug' => 'craft-commerce', 'location' => 'Cluj-Napoca', 'website' => 'https://craft-commerce.example', 'description' => 'Agentie de e-commerce si growth pentru branduri locale si regionale.'],
             ['name' => 'Astra Security', 'slug' => 'astra-security', 'location' => 'Bucuresti', 'website' => 'https://astra-security.example', 'description' => 'Companie de cyber security pentru audit, monitorizare si raspuns la incidente.'],
+        ];
+    }
+
+    private function seedRecruitmentActivity(User $demoCandidate, User $demoEmployer): void
+    {
+        $candidateProfile = $demoCandidate->candidateProfile()->firstOrFail();
+        $jobs = Job::query()
+            ->whereHas('company', fn ($query) => $query->where('owner_id', $demoEmployer->id))
+            ->with('company')
+            ->orderBy('id')
+            ->get();
+
+        $demoCandidateScenarios = [
+            [0, ApplicationStatus::Interview, 'Rolul se potriveste foarte bine cu experienta mea in QA, API testing si colaborare cu echipe de produs.', true],
+            [1, ApplicationStatus::Shortlisted, 'Sunt interesata de zona de marketplace si pot contribui rapid la claritatea proceselor de testare.', true],
+            [2, ApplicationStatus::Viewed, 'Am lucrat cu fluxuri operationale similare si mi-ar placea sa discutam despre nevoile echipei.', true],
+            [3, ApplicationStatus::Submitted, 'Aplic pentru ca produsul si modul de lucru remote se potrivesc cu obiectivele mele profesionale.', false],
+            [4, ApplicationStatus::Rejected, 'Multumesc pentru oportunitate. Sunt deschisa la feedback si roluri viitoare potrivite profilului meu.', true],
+            [5, ApplicationStatus::Accepted, 'Sunt incantata de rol si disponibila pentru pasii urmatori ai procesului.', true],
+            [6, ApplicationStatus::Interview, 'Experienta mea in SQL, Jira si suport pentru clienti poate ajuta echipa sa livreze mai previzibil.', true],
+            [7, ApplicationStatus::Viewed, 'Mi-ar placea sa aflu mai multe despre produs, echipa si obiectivele pentru urmatoarele trimestre.', false],
+            [8, ApplicationStatus::Submitted, 'Aplic cu interes pentru acest rol si pot trimite detalii suplimentare despre proiectele relevante.', false],
+            [9, ApplicationStatus::Shortlisted, 'Cred ca profilul meu combina bine atentia la detaliu cu intelegerea experientei candidatilor.', true],
+        ];
+
+        foreach ($demoCandidateScenarios as $scenarioIndex => [$jobOffset, $status, $message, $withConversation]) {
+            $application = $this->upsertApplication(
+                $jobs[$jobOffset],
+                $demoCandidate,
+                $candidateProfile,
+                $status,
+                $message,
+                $scenarioIndex
+            );
+
+            if ($withConversation) {
+                $this->seedConversation($application, $demoCandidate, $demoEmployer, $scenarioIndex);
+            }
+
+            if (in_array($status, [ApplicationStatus::Shortlisted, ApplicationStatus::Interview, ApplicationStatus::Accepted], true)) {
+                $this->upsertShortlist($application);
+            }
+        }
+
+        foreach ($this->candidatePersonas() as $candidateIndex => $persona) {
+            $candidate = $this->upsertCandidatePersona($persona, $candidateIndex);
+            $profile = $candidate->candidateProfile()->firstOrFail();
+
+            for ($applicationIndex = 0; $applicationIndex < 3; $applicationIndex++) {
+                $job = $jobs[10 + ($candidateIndex * 3) + $applicationIndex];
+                $status = $this->statusFor($candidateIndex, $applicationIndex);
+                $application = $this->upsertApplication(
+                    $job,
+                    $candidate,
+                    $profile,
+                    $status,
+                    $this->applicationMessage($persona, $job, $applicationIndex),
+                    20 + ($candidateIndex * 3) + $applicationIndex
+                );
+
+                if (($candidateIndex + $applicationIndex) % 2 === 0 || $status === ApplicationStatus::Interview) {
+                    $this->seedConversation($application, $candidate, $demoEmployer, 20 + ($candidateIndex * 3) + $applicationIndex);
+                }
+
+                if (in_array($status, [ApplicationStatus::Shortlisted, ApplicationStatus::Interview, ApplicationStatus::Accepted], true)) {
+                    $this->upsertShortlist($application);
+                }
+            }
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>  $persona
+     */
+    private function upsertCandidatePersona(array $persona, int $index): User
+    {
+        $candidate = User::updateOrCreate(
+            ['email' => $persona['email']],
+            [
+                'name' => $persona['name'],
+                'password' => self::DEMO_PASSWORD,
+                'role' => UserRole::Candidate,
+                'email_verified_at' => now()->subDays(30 - $index),
+                'is_active' => true,
+            ]
+        );
+
+        CandidateProfile::updateOrCreate(
+            ['user_id' => $candidate->id],
+            [
+                'phone' => '+40 72'.($index + 2).' 000 '.str_pad((string) ($index + 11), 3, '0', STR_PAD_LEFT),
+                'location' => $persona['location'],
+                'headline' => $persona['headline'],
+                'summary' => $persona['summary'],
+                'experience' => $persona['experience'],
+                'skills' => $persona['skills'],
+                'cv_path' => null,
+            ]
+        );
+
+        return $candidate;
+    }
+
+    private function upsertApplication(
+        Job $job,
+        User $candidate,
+        CandidateProfile $profile,
+        ApplicationStatus $status,
+        string $message,
+        int $ageIndex
+    ): Application {
+        return Application::updateOrCreate(
+            [
+                'job_id' => $job->id,
+                'candidate_id' => $candidate->id,
+            ],
+            [
+                'candidate_profile_id' => $profile->id,
+                'message' => $message,
+                'cv_path' => null,
+                'status' => $status,
+                'created_at' => now()->subDays(18 - ($ageIndex % 18))->subHours($ageIndex % 9),
+                'updated_at' => now()->subDays(12 - ($ageIndex % 12))->subMinutes($ageIndex * 3),
+            ]
+        );
+    }
+
+    private function seedConversation(Application $application, User $candidate, User $employer, int $threadIndex): void
+    {
+        $conversation = Conversation::firstOrCreate(
+            ['application_id' => $application->id],
+            [
+                'created_at' => $application->created_at->copy()->addHours(4),
+                'updated_at' => $application->updated_at,
+            ]
+        );
+
+        $messages = [
+            [
+                'sender_id' => $candidate->id,
+                'body' => 'Buna ziua, multumesc pentru confirmarea candidaturii. Pot detalia proiectele relevante si disponibilitatea pentru interviu.',
+                'created_at' => $application->created_at->copy()->addHours(5),
+            ],
+            [
+                'sender_id' => $employer->id,
+                'body' => 'Buna, profilul tau este interesant pentru rol. Ne poti spune ce tip de echipa si ritm de lucru cauti in perioada urmatoare?',
+                'created_at' => $application->created_at->copy()->addHours(11),
+            ],
+            [
+                'sender_id' => $candidate->id,
+                'body' => 'Caut o echipa cu ownership clar, feedback rapid si obiective masurabile. Sunt confortabil(a) cu lucru hibrid sau remote.',
+                'created_at' => $application->created_at->copy()->addDay(),
+            ],
+        ];
+
+        if ($threadIndex % 3 === 0) {
+            $messages[] = [
+                'sender_id' => $employer->id,
+                'body' => 'Perfect. Am putea programa o discutie de 30 de minute saptamana aceasta pentru a trece prin experienta ta recenta.',
+                'created_at' => $application->created_at->copy()->addDays(2),
+            ];
+        }
+
+        foreach ($messages as $message) {
+            Message::updateOrCreate(
+                [
+                    'conversation_id' => $conversation->id,
+                    'sender_id' => $message['sender_id'],
+                    'body' => $message['body'],
+                ],
+                [
+                    'read_at' => $message['sender_id'] === $candidate->id ? now()->subDay() : null,
+                    'created_at' => $message['created_at'],
+                    'updated_at' => $message['created_at'],
+                ]
+            );
+        }
+    }
+
+    private function upsertShortlist(Application $application): void
+    {
+        Shortlist::updateOrCreate(
+            [
+                'company_id' => $application->job->company_id,
+                'job_id' => $application->job_id,
+                'candidate_id' => $application->candidate_id,
+            ],
+            [
+                'created_at' => $application->updated_at,
+                'updated_at' => $application->updated_at,
+            ]
+        );
+    }
+
+    private function statusFor(int $candidateIndex, int $applicationIndex): ApplicationStatus
+    {
+        $statuses = [
+            ApplicationStatus::Submitted,
+            ApplicationStatus::Viewed,
+            ApplicationStatus::Shortlisted,
+            ApplicationStatus::Interview,
+            ApplicationStatus::Rejected,
+            ApplicationStatus::Accepted,
+        ];
+
+        return $statuses[($candidateIndex + $applicationIndex) % count($statuses)];
+    }
+
+    /**
+     * @param  array<string, mixed>  $persona
+     */
+    private function applicationMessage(array $persona, Job $job, int $applicationIndex): string
+    {
+        $focus = $persona['skills'][$applicationIndex % count($persona['skills'])];
+
+        return "Aplic pentru rolul {$job->title}. Experienta mea in {$focus} si proiectele recente descrise in profil se potrivesc cu responsabilitatile publicate.";
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function candidatePersonas(): array
+    {
+        return [
+            ['name' => 'Radu Marinescu', 'email' => 'radu.marinescu@hireme.local', 'location' => 'Cluj-Napoca', 'headline' => 'Backend Engineer cu experienta in produse B2B', 'summary' => 'Lucreaza cu API-uri, baze de date si sisteme distribuite pentru platforme SaaS.', 'skills' => ['Laravel', 'PostgreSQL', 'Redis', 'API design'], 'experience' => [['title' => 'Backend Engineer', 'company' => 'SoftBridge', 'years' => 5]]],
+            ['name' => 'Ioana Dumitrescu', 'email' => 'ioana.dumitrescu@hireme.local', 'location' => 'Bucuresti', 'headline' => 'Product Manager orientat pe discovery si metrics', 'summary' => 'Coordoneaza roadmap-uri si initiative de produs pentru echipe cross-functionale.', 'skills' => ['Discovery', 'Roadmap', 'Analytics', 'Stakeholders'], 'experience' => [['title' => 'Product Manager', 'company' => 'Mercury Apps', 'years' => 6]]],
+            ['name' => 'Andrei Stoica', 'email' => 'andrei.stoica@hireme.local', 'location' => 'Iasi', 'headline' => 'QA Automation Engineer pentru aplicatii web', 'summary' => 'Construieste suite de testare stabile si sprijina livrari predictibile.', 'skills' => ['Playwright', 'API testing', 'CI/CD', 'SQL'], 'experience' => [['title' => 'QA Automation Engineer', 'company' => 'TestLab', 'years' => 4]]],
+            ['name' => 'Elena Pavel', 'email' => 'elena.pavel@hireme.local', 'location' => 'Timisoara', 'headline' => 'UX/UI Designer pentru platforme operationale', 'summary' => 'Creeaza fluxuri clare pentru produse cu densitate mare de informatie.', 'skills' => ['Figma', 'Design systems', 'Research', 'Prototyping'], 'experience' => [['title' => 'UX Designer', 'company' => 'Studio Forma', 'years' => 5]]],
+            ['name' => 'Mihnea Tudor', 'email' => 'mihnea.tudor@hireme.local', 'location' => 'Remote, Romania', 'headline' => 'DevOps Engineer cloud-native', 'summary' => 'Automatizeaza infrastructura si observabilitatea pentru echipe distribuite.', 'skills' => ['Docker', 'Terraform', 'Kubernetes', 'Monitoring'], 'experience' => [['title' => 'DevOps Engineer', 'company' => 'CloudForge', 'years' => 7]]],
+            ['name' => 'Cristina Neagu', 'email' => 'cristina.neagu@hireme.local', 'location' => 'Brasov', 'headline' => 'Customer Success Manager pentru clienti B2B', 'summary' => 'Creste adoptia, retentia si satisfactia clientilor enterprise.', 'skills' => ['Onboarding', 'CRM', 'Account planning', 'Training'], 'experience' => [['title' => 'Customer Success Manager', 'company' => 'CarePilot', 'years' => 6]]],
+            ['name' => 'Alexandru Ene', 'email' => 'alexandru.ene@hireme.local', 'location' => 'Bucuresti', 'headline' => 'Data Analyst cu focus pe BI si raportare', 'summary' => 'Construieste dashboard-uri si modele de date pentru decizii operationale.', 'skills' => ['SQL', 'Power BI', 'dbt', 'Statistics'], 'experience' => [['title' => 'Data Analyst', 'company' => 'MetricWorks', 'years' => 4]]],
+            ['name' => 'Diana Ilie', 'email' => 'diana.ilie@hireme.local', 'location' => 'Cluj-Napoca', 'headline' => 'Recruitment Specialist pentru roluri tech si business', 'summary' => 'Gestioneaza sourcing, screening si experienta candidatilor end-to-end.', 'skills' => ['Sourcing', 'ATS', 'Interviewing', 'Candidate experience'], 'experience' => [['title' => 'Recruiter', 'company' => 'PeopleScale', 'years' => 5]]],
+            ['name' => 'Sorin Matei', 'email' => 'sorin.matei@hireme.local', 'location' => 'Constanta', 'headline' => 'Operations Manager pentru procese scalabile', 'summary' => 'Optimizeaza procese, furnizori si indicatori de performanta.', 'skills' => ['KPI tracking', 'Planning', 'Process improvement', 'Vendor management'], 'experience' => [['title' => 'Operations Manager', 'company' => 'FlowOps', 'years' => 8]]],
+            ['name' => 'Mara Pop', 'email' => 'mara.pop@hireme.local', 'location' => 'Remote, Romania', 'headline' => 'Content Marketing Specialist B2B', 'summary' => 'Scrie continut orientat pe conversie, SEO si educarea clientilor.', 'skills' => ['SEO', 'Copywriting', 'Analytics', 'Editorial calendar'], 'experience' => [['title' => 'Content Specialist', 'company' => 'BrandNorth', 'years' => 4]]],
+            ['name' => 'Vlad Georgescu', 'email' => 'vlad.georgescu@hireme.local', 'location' => 'Oradea', 'headline' => 'Security Analyst pentru monitorizare si raspuns', 'summary' => 'Investigheaza alerte, vulnerabilitati si incidente de securitate.', 'skills' => ['SIEM', 'Linux', 'Incident response', 'Vulnerability management'], 'experience' => [['title' => 'Security Analyst', 'company' => 'SafeLayer', 'years' => 5]]],
+            ['name' => 'Bianca Stan', 'email' => 'bianca.stan@hireme.local', 'location' => 'Sibiu', 'headline' => 'Finance Controller cu experienta in raportare', 'summary' => 'Coordoneaza bugete, forecast-uri si control financiar pentru echipe in crestere.', 'skills' => ['Budgeting', 'Forecasting', 'Excel', 'IFRS'], 'experience' => [['title' => 'Finance Controller', 'company' => 'LedgerPro', 'years' => 7]]],
         ];
     }
 
