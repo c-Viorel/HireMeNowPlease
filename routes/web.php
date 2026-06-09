@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\JobController as AdminJobController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Candidate\ApplicationController as CandidateApplicationController;
 use App\Http\Controllers\Candidate\AiCvImportController;
+use App\Http\Controllers\Candidate\EmployerReviewController;
 use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\Candidate\DashboardController as CandidateDashboardController;
 use App\Http\Controllers\Candidate\ProfileController as CandidateProfileController;
@@ -19,11 +20,13 @@ use App\Http\Controllers\Employer\ShortlistController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\JobController;
+use App\Http\Controllers\Public\CompanyController as PublicCompanyController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
 Route::get('/jobs', [JobController::class, 'index'])->name('jobs.index');
+Route::get('/companies/{company:slug}', [PublicCompanyController::class, 'show'])->name('companies.show');
 Route::get('/companies/{company:slug}/jobs/{job:slug}', [JobController::class, 'show'])
     ->scopeBindings()
     ->name('jobs.show');
@@ -45,6 +48,9 @@ Route::middleware(['auth', 'active', 'verified'])->group(function () {
     Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
     Route::get('/conversations/{conversation}', [ConversationController::class, 'show'])->name('conversations.show');
     Route::post('/conversations/{conversation}/messages', [MessageController::class, 'store'])->name('messages.store');
+    Route::post('/companies/{company:slug}/reviews', [EmployerReviewController::class, 'store'])
+        ->middleware('role:candidate')
+        ->name('companies.reviews.store');
 
     Route::prefix('candidate')->name('candidate.')->middleware('role:candidate')->group(function () {
         Route::get('/dashboard', CandidateDashboardController::class)->name('dashboard');

@@ -35,4 +35,9 @@ class Company extends Model
     {
         return $this->hasMany(Shortlist::class);
     }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(EmployerReview::class);
+    }
 }
