@@ -21,14 +21,48 @@ class ApplicationController extends Controller
 {
     public function index(Request $request): View
     {
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:120'],
+            'status' => ['nullable', Rule::in(array_column(ApplicationStatus::cases(), 'value'))],
+            'job' => ['nullable', 'integer'],
+            'min_fit' => ['nullable', 'integer', 'min:0', 'max:100'],
+            'sort' => ['nullable', Rule::in(['newest', 'oldest', 'fit_desc', 'fit_asc'])],
+            'per_page' => ['nullable', 'integer', Rule::in([10, 25, 50, 100])],
+        ]);
+
+        $ownerId = $request->user()->id;
+
         $baseQuery = Application::query()
             ->with(['candidate', 'candidateProfile', 'job.company'])
-            ->whereHas('job.company', fn ($query) => $query->where('owner_id', $request->user()->id));
+            ->whereHas('job.company', fn ($query) => $query->where('owner_id', $ownerId));
 
         $statsApplications = (clone $baseQuery)->get();
-        $applications = $baseQuery
-            ->latest()
-            ->paginate(10);
+
+        $filteredQuery = (clone $baseQuery)
+            ->when($filters['q'] ?? null, function ($query, string $search): void {
+                $query->where(function ($query) use ($search): void {
+                    $query
+                        ->whereHas('candidate', fn ($q) => $q->where('name', 'like', '%'.$search.'%')->orWhere('email', 'like', '%'.$search.'%'))
+                        ->orWhereHas('job', fn ($q) => $q->where('title', 'like', '%'.$search.'%'));
+                });
+            })
+            ->when($filters['status'] ?? null, fn ($query, string $status) => $query->where('status', $status))
+            ->when($filters['job'] ?? null, fn ($query, int $jobId) => $query->where('job_id', $jobId))
+            ->when(isset($filters['min_fit']), function ($query) use ($filters): void {
+                $min = (int) $filters['min_fit'];
+                $query->whereRaw("CAST(json_extract(fit_snapshot, '$.score') AS INTEGER) >= ?", [$min]);
+            });
+
+        $sort = $filters['sort'] ?? 'newest';
+        match ($sort) {
+            'oldest' => $filteredQuery->oldest(),
+            'fit_desc' => $filteredQuery->orderByRaw("CAST(json_extract(fit_snapshot, '$.score') AS INTEGER) DESC")->latest(),
+            'fit_asc' => $filteredQuery->orderByRaw("CAST(json_extract(fit_snapshot, '$.score') AS INTEGER) ASC")->latest(),
+            default => $filteredQuery->latest(),
+        };
+
+        $perPage = (int) ($filters['per_page'] ?? 10);
+        $applications = $filteredQuery->paginate($perPage)->withQueryString();
 
         $openStatuses = [
             ApplicationStatus::Submitted->value,
@@ -39,6 +73,14 @@ class ApplicationController extends Controller
 
         return view('employer.applications.index', [
             'applications' => $applications,
+            'filters' => $filters,
+            'jobOptions' => $statsApplications
+                ->pluck('job')
+                ->unique('id')
+                ->sortBy('title')
+                ->map(fn ($job) => ['id' => $job->id, 'title' => $job->title])
+                ->values(),
+            'statuses' => ApplicationStatus::cases(),
             'applicationStats' => [
                 'total' => $statsApplications->count(),
                 'open' => $statsApplications->filter(fn (Application $application) => in_array($application->status->value, $openStatuses, true))->count(),
@@ -133,5 +175,4 @@ class ApplicationController extends Controller
             ApplicationStatus::Accepted->value,
         ];
     }
-
 }
