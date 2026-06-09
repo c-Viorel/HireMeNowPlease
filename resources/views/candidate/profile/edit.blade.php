@@ -69,19 +69,30 @@
         $preference = $profile?->jobPreference;
         $fieldClass = 'mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-600 focus:ring-indigo-600';
         $labelClass = 'block text-sm font-medium text-gray-700';
+        $sectionStatus = [
+            'basic' => filled($profile?->headline) && filled($profile?->summary) && filled($profile?->phone),
+            'experience' => ($profile?->experiences?->count() ?? 0) > 0,
+            'education' => ($profile?->educations?->count() ?? 0) > 0,
+            'credentials' => (($profile?->certifications?->count() ?? 0) + ($profile?->links?->count() ?? 0)) > 0,
+            'preferences' => filled($preference?->availability) || filled($preference?->experience_level),
+        ];
     @endphp
 
     <x-slot name="header">
-        <div class="flex flex-col gap-1">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Candidate Profile') }}</h2>
-            <p class="text-sm text-gray-600">Build a profile recruiters can actually evaluate without opening a CV first.</p>
-            <a href="{{ route('candidate.profile.ai.create') }}" class="mt-3 inline-flex text-sm font-semibold text-indigo-600 hover:text-indigo-700">Import with AI from CV</a>
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+                <p class="section-eyebrow">Profil structurat</p>
+                <h2 class="mt-1 text-2xl font-bold tracking-tight text-slate-950">{{ __('Candidate Profile') }}</h2>
+                <p class="mt-1 text-sm text-slate-600">Build a profile recruiters can actually evaluate without opening a CV first.</p>
+            </div>
+            <a href="{{ route('candidate.profile.ai.create') }}" class="btn-primary">Import with AI from CV</a>
         </div>
     </x-slot>
 
     <div class="py-10">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <form
+                id="candidate-profile-form"
                 method="POST"
                 action="{{ route('candidate.profile.update') }}"
                 enctype="multipart/form-data"
@@ -108,9 +119,38 @@
                     <p class="rounded-md bg-green-50 px-4 py-3 text-sm font-medium text-green-800">AI extracted CV data was saved to your profile. Review the fields below before applying.</p>
                 @endif
 
-                <x-insights.profile-coach-card :coach="$profileCoach" />
+                <div class="grid gap-6 lg:grid-cols-[16rem_1fr] lg:items-start">
+                    <aside class="surface p-4 lg:sticky lg:top-20">
+                        <p class="text-sm font-semibold text-slate-950">Profile sections</p>
+                        <nav class="mt-4 space-y-1" aria-label="Profile sections">
+                            @foreach ([
+                                'basic' => 'Basic info',
+                                'experience' => 'Experience',
+                                'education' => 'Education',
+                                'credentials' => 'Credentials',
+                                'preferences' => 'Preferences',
+                            ] as $anchor => $label)
+                                <a href="#{{ $anchor }}" class="flex items-center justify-between rounded-md px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100">
+                                    <span>{{ $label }}</span>
+                                    <span @class([
+                                        'h-2.5 w-2.5 rounded-full',
+                                        'bg-emerald-500' => $sectionStatus[$anchor],
+                                        'bg-slate-300' => ! $sectionStatus[$anchor],
+                                    ])></span>
+                                </a>
+                            @endforeach
+                        </nav>
+                        <div class="mt-4 rounded-lg bg-slate-50 p-3">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Shortcut</p>
+                            <a href="{{ route('candidate.profile.ai.create') }}" class="mt-2 block text-sm font-bold text-emerald-700 hover:text-emerald-800">Refa profilul din CV</a>
+                        </div>
+                        <button type="submit" form="candidate-profile-form" class="btn-primary mt-4 w-full">Save profile</button>
+                    </aside>
 
-                <section class="bg-white p-6 shadow-sm sm:rounded-lg">
+                    <div class="space-y-6">
+                        <x-insights.profile-coach-card :coach="$profileCoach" />
+
+                <section id="basic" class="scroll-mt-24 bg-white p-6 shadow-sm sm:rounded-lg">
                     <div class="grid gap-6 lg:grid-cols-[1fr_18rem]">
                         <div class="space-y-5">
                             <div>
@@ -160,7 +200,7 @@
                     </div>
                 </section>
 
-                <section class="bg-white p-6 shadow-sm sm:rounded-lg">
+                <section id="experience" class="scroll-mt-24 bg-white p-6 shadow-sm sm:rounded-lg">
                     <div class="flex items-center justify-between gap-4">
                         <div>
                             <h3 class="text-lg font-semibold text-gray-900">Experience</h3>
@@ -238,7 +278,7 @@
                     <x-input-error class="mt-4" :messages="$errors->get('experiences.0.end_date')" />
                 </section>
 
-                <section class="grid gap-6 lg:grid-cols-2">
+                <section id="education" class="scroll-mt-24 grid gap-6 lg:grid-cols-2">
                     <div class="bg-white p-6 shadow-sm sm:rounded-lg">
                         <div class="flex items-center justify-between gap-4">
                             <h3 class="text-lg font-semibold text-gray-900">Education</h3>
@@ -271,7 +311,7 @@
                         <x-input-error class="mt-4" :messages="$errors->get('educations.0.end_date')" />
                     </div>
 
-                    <div class="space-y-6">
+                    <div id="credentials" class="scroll-mt-24 space-y-6">
                         <div class="bg-white p-6 shadow-sm sm:rounded-lg">
                             <div class="flex items-center justify-between gap-4">
                                 <h3 class="text-lg font-semibold text-gray-900">Certifications</h3>
@@ -313,7 +353,7 @@
                     </div>
                 </section>
 
-                <section class="bg-white p-6 shadow-sm sm:rounded-lg">
+                <section id="preferences" class="scroll-mt-24 bg-white p-6 shadow-sm sm:rounded-lg">
                     <h3 class="text-lg font-semibold text-gray-900">Job preferences</h3>
                     <div class="mt-5 grid gap-5 md:grid-cols-2">
                         <div>
@@ -357,9 +397,11 @@
                     </div>
                 </section>
 
-                <div class="flex items-center justify-end gap-3">
-                    <a href="{{ route('candidate.dashboard') }}" class="text-sm font-medium text-gray-600 hover:text-gray-900">Cancel</a>
-                    <x-primary-button>{{ __('Save profile') }}</x-primary-button>
+                        <div class="flex items-center justify-end gap-3 rounded-lg border border-slate-200 bg-white p-3">
+                            <a href="{{ route('candidate.dashboard') }}" class="text-sm font-medium text-gray-600 hover:text-gray-900">Cancel</a>
+                            <x-primary-button>{{ __('Save profile') }}</x-primary-button>
+                        </div>
+                    </div>
                 </div>
             </form>
         </div>

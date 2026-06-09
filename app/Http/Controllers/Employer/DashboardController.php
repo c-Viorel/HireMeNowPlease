@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Employer;
 
 use App\Enums\JobStatus;
 use App\Http\Controllers\Controller;
+use App\Models\Application;
 use App\Models\Company;
 use App\Models\Job;
 use App\Models\Message;
@@ -43,6 +44,24 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
+        $priorityApplications = Application::query()
+            ->with(['candidate', 'job.company'])
+            ->whereHas('job.company', fn ($query) => $query->where('owner_id', $employerId))
+            ->latest()
+            ->take(5)
+            ->get()
+            ->sortByDesc(fn (Application $application) => (int) data_get($application->fit_snapshot, 'score', 0))
+            ->values();
+
+        $totalApplications = Application::query()
+            ->whereHas('job.company', fn ($query) => $query->where('owner_id', $employerId))
+            ->count();
+
+        $openApplications = Application::query()
+            ->whereHas('job.company', fn ($query) => $query->where('owner_id', $employerId))
+            ->whereIn('status', ['submitted', 'viewed', 'shortlisted', 'interview'])
+            ->count();
+
         $responseHealth = $companies
             ->map(fn (Company $company) => [
                 'company' => $company,
@@ -55,6 +74,9 @@ class DashboardController extends Controller
             'activeJobs' => $activeJobs,
             'latestMessages' => $latestMessages,
             'responseHealth' => $responseHealth,
+            'priorityApplications' => $priorityApplications,
+            'totalApplications' => $totalApplications,
+            'openApplications' => $openApplications,
         ]);
     }
 }

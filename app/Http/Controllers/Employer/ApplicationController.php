@@ -20,14 +20,33 @@ class ApplicationController extends Controller
 {
     public function index(Request $request): View
     {
-        $applications = Application::query()
+        $baseQuery = Application::query()
             ->with(['candidate', 'candidateProfile', 'job.company'])
-            ->whereHas('job.company', fn ($query) => $query->where('owner_id', $request->user()->id))
+            ->whereHas('job.company', fn ($query) => $query->where('owner_id', $request->user()->id));
+
+        $statsApplications = (clone $baseQuery)->get();
+        $applications = $baseQuery
             ->latest()
             ->paginate(10);
 
+        $openStatuses = [
+            ApplicationStatus::Submitted->value,
+            ApplicationStatus::Viewed->value,
+            ApplicationStatus::Shortlisted->value,
+            ApplicationStatus::Interview->value,
+        ];
+
         return view('employer.applications.index', [
             'applications' => $applications,
+            'applicationStats' => [
+                'total' => $statsApplications->count(),
+                'open' => $statsApplications->filter(fn (Application $application) => in_array($application->status->value, $openStatuses, true))->count(),
+                'high_fit' => $statsApplications->filter(fn (Application $application) => (int) data_get($application->fit_snapshot, 'score', 0) >= 70)->count(),
+                'needs_response' => $statsApplications->filter(fn (Application $application) => in_array($application->status->value, [
+                    ApplicationStatus::Submitted->value,
+                    ApplicationStatus::Viewed->value,
+                ], true))->count(),
+            ],
         ]);
     }
 

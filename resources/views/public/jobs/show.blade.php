@@ -16,9 +16,36 @@
             </dl>
 
             @if ($job->salary_min || $job->salary_max)
-                <p class="mt-6 rounded-md bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900">
-                    Salariu: {{ $job->salary_min ? number_format($job->salary_min) : 'Nespecificat' }} - {{ $job->salary_max ? number_format($job->salary_max) : 'Nespecificat' }}
-                </p>
+                @php($salaryTypeLabel = ($job->salary_type ?? \App\Enums\SalaryType::Gross)->label())
+                <div class="mt-6 rounded-md bg-emerald-50 px-4 py-4 text-sm text-emerald-900">
+                    <p class="font-semibold">
+                        Salariu {{ $salaryTypeLabel }}:
+                        {{ $job->salary_min ? number_format($job->salary_min) : 'Nespecificat' }}
+                        - {{ $job->salary_max ? number_format($job->salary_max) : 'Nespecificat' }} lei
+                    </p>
+                    @if (($salaryMinBreakdown ?? null) || ($salaryMaxBreakdown ?? null))
+                        <p class="mt-2 text-emerald-800">
+                            Salariu net estimat in mana:
+                            {{ ($salaryMinBreakdown['net'] ?? null) ? number_format($salaryMinBreakdown['net']) : 'Nespecificat' }}
+                            - {{ ($salaryMaxBreakdown['net'] ?? null) ? number_format($salaryMaxBreakdown['net']) : 'Nespecificat' }} lei
+                        </p>
+                        <p class="mt-1 text-xs text-emerald-700">
+                            Conversie automata brut ↔ net cu contributiile 2026 (CAS 25%, CASS 10%, impozit 10%).
+                        </p>
+                    @endif
+                </div>
+
+                @if ($salaryBenchmark ?? null)
+                    <div class="mt-3 rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                        <p class="font-semibold text-slate-900">Banda de piata pentru rol similar in zona</p>
+                        <p class="mt-1">
+                            {{ number_format($salaryBenchmark['min']) }} -
+                            <span class="font-semibold">{{ number_format($salaryBenchmark['median']) }} (median)</span>
+                            - {{ number_format($salaryBenchmark['max']) }} lei
+                            <span class="text-slate-500">({{ $salaryBenchmark['sample'] }} anunturi)</span>
+                        </p>
+                    </div>
+                @endif
             @endif
 
             <div class="prose prose-slate mt-8 max-w-none">

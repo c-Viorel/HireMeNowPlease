@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\EmploymentType;
+use App\Enums\SalaryType;
 use App\Enums\WorkplaceType;
 use App\Models\Company;
 use Illuminate\Foundation\Http\FormRequest;
@@ -35,6 +36,7 @@ class JobRequest extends FormRequest
             'experience_level' => ['nullable', 'string', 'max:255'],
             'salary_min' => ['nullable', 'integer', 'min:0'],
             'salary_max' => ['nullable', 'integer', 'min:0', 'gte:salary_min'],
+            'salary_type' => ['nullable', Rule::in(array_column(SalaryType::cases(), 'value'))],
             'status' => ['required', Rule::in(['draft', 'published'])],
         ];
     }

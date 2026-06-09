@@ -10,6 +10,8 @@ use App\Models\Job;
 use App\Support\Copilot\CandidateCoach;
 use App\Support\Insights\CompanyResponsivenessScorer;
 use App\Support\Insights\JobFitScorer;
+use App\Support\Salary\RomanianSalaryCalculator;
+use App\Support\Salary\SalaryBenchmark;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -75,7 +77,9 @@ class JobController extends Controller
         Job $job,
         JobFitScorer $fitScorer,
         CompanyResponsivenessScorer $responsivenessScorer,
-        CandidateCoach $candidateCoach
+        CandidateCoach $candidateCoach,
+        RomanianSalaryCalculator $salaryCalculator,
+        SalaryBenchmark $salaryBenchmark
     ): View
     {
         abort_unless(
@@ -91,11 +95,18 @@ class JobController extends Controller
         $candidateProfile = auth()->user()?->candidateProfile;
         $fitScore = $candidateProfile ? $fitScorer->score($candidateProfile, $job)->toArray() : null;
 
+        $isGross = ($job->salary_type ?? \App\Enums\SalaryType::Gross) === \App\Enums\SalaryType::Gross;
+        $salaryMinBreakdown = $job->salary_min ? $salaryCalculator->convertToNet((int) $job->salary_min, $isGross)->toArray() : null;
+        $salaryMaxBreakdown = $job->salary_max ? $salaryCalculator->convertToNet((int) $job->salary_max, $isGross)->toArray() : null;
+
         return view('public.jobs.show', [
             'job' => $job,
             'fitScore' => $fitScore,
             'candidateAdvice' => $candidateProfile ? $candidateCoach->jobAdvice($candidateProfile, $job) : null,
             'responsivenessScore' => $responsivenessScorer->scoreCompany($company),
+            'salaryMinBreakdown' => $salaryMinBreakdown,
+            'salaryMaxBreakdown' => $salaryMaxBreakdown,
+            'salaryBenchmark' => $salaryBenchmark->forJob($job),
         ]);
     }
 }

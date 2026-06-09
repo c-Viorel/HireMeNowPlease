@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Enums\EmploymentType;
 use App\Enums\JobStatus;
+use App\Enums\SalaryType;
 use App\Enums\WorkplaceType;
 use App\Models\Company;
 use App\Models\Job;
@@ -35,6 +36,7 @@ class JobFactory extends Factory
             'experience_level' => 'mid',
             'salary_min' => null,
             'salary_max' => null,
+            'salary_type' => SalaryType::Gross,
             'status' => JobStatus::Published,
             'published_at' => now(),
         ];

@@ -88,28 +88,24 @@
     </section>
 
     <section class="border-b border-slate-200 bg-white">
-        <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-            <div class="grid gap-4 lg:grid-cols-5">
-                <article class="rounded-lg border border-sky-200 bg-sky-50 p-5">
-                    <p class="text-sm font-semibold text-sky-950">Job Fit Score</p>
-                    <p class="mt-2 text-sm leading-6 text-slate-700">Candidatii vad scorul de potrivire, skill-urile matchuite si gap-urile reale.</p>
-                </article>
-                <article class="rounded-lg border border-violet-200 bg-violet-50 p-5">
-                    <p class="text-sm font-semibold text-violet-950">Career Coach</p>
-                    <p class="mt-2 text-sm leading-6 text-slate-700">Profilul primeste recomandari concrete pentru experienta, skill-uri si aplicari.</p>
-                </article>
-                <article class="rounded-lg border border-amber-200 bg-amber-50 p-5">
-                    <p class="text-sm font-semibold text-amber-950">Anti-ghosting</p>
-                    <p class="mt-2 text-sm leading-6 text-slate-700">Companiile afiseaza rata si timpul de raspuns, fara promisiuni ascunse.</p>
-                </article>
-                <article class="rounded-lg border border-emerald-200 bg-emerald-50 p-5">
-                    <p class="text-sm font-semibold text-emerald-950">HR Copilot</p>
-                    <p class="mt-2 text-sm leading-6 text-slate-700">Recruiterii primesc sumar, motive de interes si intrebari pentru interviu.</p>
-                </article>
-                <article class="rounded-lg border border-slate-200 bg-slate-50 p-5">
-                    <p class="text-sm font-semibold text-slate-950">Scorecards</p>
-                    <p class="mt-2 text-sm leading-6 text-slate-700">Interviurile sunt evaluate consecvent, cu scoruri si evidence salvate.</p>
-                </article>
+        <div class="mx-auto grid max-w-7xl gap-5 px-4 py-8 sm:px-6 lg:grid-cols-[18rem_1fr] lg:px-8">
+            <div>
+                <p class="section-eyebrow">De ce e diferit</p>
+                <h2 class="mt-2 text-2xl font-bold tracking-tight text-slate-950">Mai putina cautare oarba, mai multa claritate.</h2>
+            </div>
+            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                @foreach ([
+                    ['Job Fit Score', 'Skill-uri matchuite si gap-uri reale.', 'chip-sky'],
+                    ['Career Coach', 'Recomandari concrete pentru profil.', 'chip'],
+                    ['Anti-ghosting', 'Rata si timpul de raspuns la vedere.', 'chip-amber'],
+                    ['HR Copilot', 'Sumar, riscuri si intrebari utile.', 'chip-emerald'],
+                    ['Scorecards', 'Evaluari consecvente dupa interviu.', 'chip'],
+                ] as [$title, $copy, $chipClass])
+                    <article class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                        <span class="{{ $chipClass }}">{{ $title }}</span>
+                        <p class="mt-3 text-sm leading-6 text-slate-700">{{ $copy }}</p>
+                    </article>
+                @endforeach
             </div>
         </div>
     </section>

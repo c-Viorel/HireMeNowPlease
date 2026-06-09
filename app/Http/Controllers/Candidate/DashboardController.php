@@ -60,6 +60,7 @@ class DashboardController extends Controller
             'profile' => $profile,
             'profileCompletion' => $this->profileCompletion($profile),
             'profileCoach' => $candidateCoach->profileAdvice($profile),
+            'nextActions' => $this->nextActions($profile, $recentApplications, $recentConversations, $bestMatches),
             'bestMatches' => $bestMatches,
             'recentApplications' => $recentApplications,
             'recentConversations' => $recentConversations,
@@ -91,5 +92,57 @@ class DashboardController extends Controller
             ->count();
 
         return (int) round(($completed / count($fields)) * 100);
+    }
+
+    private function nextActions(mixed $profile, mixed $recentApplications, mixed $recentConversations, mixed $bestMatches): array
+    {
+        $actions = [];
+
+        if (! $profile || blank($profile->cv_path)) {
+            $actions[] = [
+                'label' => 'Importa CV-ul cu AI',
+                'description' => 'Completeaza profilul rapid din PDF sau DOCX.',
+                'href' => route('candidate.profile.ai.create'),
+                'tone' => 'primary',
+            ];
+        }
+
+        if ($profile && blank($profile->summary)) {
+            $actions[] = [
+                'label' => 'Adauga sumarul',
+                'description' => '3-5 fraze cresc calitatea potrivirilor.',
+                'href' => route('candidate.profile.edit').'#basic',
+                'tone' => 'secondary',
+            ];
+        }
+
+        if ($bestMatches->isNotEmpty()) {
+            $actions[] = [
+                'label' => 'Exploreaza potriviri',
+                'description' => $bestMatches->first()['fit']['score'].'% cel mai bun fit disponibil acum.',
+                'href' => route('jobs.index'),
+                'tone' => 'secondary',
+            ];
+        }
+
+        if ($recentConversations->isNotEmpty()) {
+            $actions[] = [
+                'label' => 'Verifica mesajele',
+                'description' => 'Ai conversatii recente de urmarit.',
+                'href' => route('conversations.index'),
+                'tone' => 'secondary',
+            ];
+        }
+
+        if ($actions === []) {
+            $actions[] = [
+                'label' => 'Cauta joburi',
+                'description' => $recentApplications->isEmpty() ? 'Incepe cu rolurile publice verificate.' : 'Continua sa gasesti roluri compatibile.',
+                'href' => route('jobs.index'),
+                'tone' => 'primary',
+            ];
+        }
+
+        return array_slice($actions, 0, 4);
     }
 }

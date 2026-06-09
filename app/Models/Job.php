@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\EmploymentType;
 use App\Enums\JobStatus;
+use App\Enums\SalaryType;
 use App\Enums\WorkplaceType;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -31,6 +32,7 @@ class Job extends Model
         return [
             'employment_type' => EmploymentType::class,
             'workplace_type' => WorkplaceType::class,
+            'salary_type' => SalaryType::class,
             'status' => JobStatus::class,
             'published_at' => 'datetime',
         ];
