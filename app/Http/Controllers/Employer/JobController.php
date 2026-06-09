@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\JobRequest;
 use App\Models\Company;
 use App\Models\Job;
+use App\Support\Billing\PlanGate;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
@@ -35,9 +36,21 @@ class JobController extends Controller
         ]);
     }
 
-    public function store(JobRequest $request): RedirectResponse
+    public function store(JobRequest $request, PlanGate $planGate): RedirectResponse
     {
         $validated = $request->validated();
+
+        if ($validated['status'] === 'published') {
+            $company = Company::query()->whereKey((int) $validated['company_id'])->first();
+
+            if ($company && ! $planGate->canPublishJob($company)) {
+                $plan = $planGate->planFor($company);
+
+                return redirect()->back()->withInput()->withErrors([
+                    'status' => 'Ai atins limita de '.$plan->activeJobLimit().' joburi active pentru planul '.$plan->label().'. Fa upgrade pentru a publica mai multe.',
+                ]);
+            }
+        }
 
         $this->withUniqueSlugRetry(
             $validated['title'],
