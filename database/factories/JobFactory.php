@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\EmploymentType;
+use App\Enums\JobCategory;
 use App\Enums\JobStatus;
 use App\Enums\SalaryType;
 use App\Enums\WorkplaceType;
@@ -34,6 +35,10 @@ class JobFactory extends Factory
             'employment_type' => EmploymentType::FullTime,
             'workplace_type' => WorkplaceType::Hybrid,
             'experience_level' => 'mid',
+            'category' => JobCategory::WhiteCollar,
+            'shift_schedule' => null,
+            'latitude' => null,
+            'longitude' => null,
             'salary_min' => null,
             'salary_max' => null,
             'salary_type' => SalaryType::Gross,

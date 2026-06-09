@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Company;
 use App\Models\Job;
 use App\Support\Copilot\CandidateCoach;
+use App\Support\Geo\Geocoder;
+use App\Support\Geo\HaversineDistance;
 use App\Support\Insights\CompanyResponsivenessScorer;
 use App\Support\Insights\JobFitScorer;
 use App\Support\Salary\RomanianSalaryCalculator;
@@ -26,11 +28,20 @@ class JobController extends Controller
             'workplace_type' => ['nullable', Rule::enum(WorkplaceType::class)],
             'employment_type' => ['nullable', Rule::enum(EmploymentType::class)],
             'experience_level' => ['nullable', 'string', 'max:80'],
+            'near' => ['nullable', 'string', 'max:120'],
+            'radius_km' => ['nullable', 'integer', 'min:1', 'max:500'],
         ]);
+
+        $jobsInRadius = $this->jobIdsWithinRadius(
+            $filters['near'] ?? null,
+            (int) ($filters['radius_km'] ?? 0),
+            app(Geocoder::class)
+        );
 
         $jobs = Job::query()
             ->with('company')
             ->publiclyVisible()
+            ->when($jobsInRadius !== null, fn ($query) => $query->whereIn('id', $jobsInRadius))
             ->when($filters['q'] ?? null, function ($query, string $search): void {
                 $query->where(function ($query) use ($search): void {
                     $query
@@ -70,6 +81,39 @@ class JobController extends Controller
             'workplaceTypes' => WorkplaceType::cases(),
             'responsiveness' => $responsiveness,
         ]);
+    }
+
+    /**
+     * Return the ids of publicly visible jobs within a radius of a city, or
+     * null when no geo filter is requested.
+     *
+     * @return array<int, int>|null
+     */
+    private function jobIdsWithinRadius(?string $city, int $radiusKm, Geocoder $geocoder): ?array
+    {
+        if ($city === null || $radiusKm <= 0) {
+            return null;
+        }
+
+        $origin = $geocoder->coordinates($city);
+
+        if ($origin === null) {
+            return [];
+        }
+
+        return Job::query()
+            ->publiclyVisible()
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->get(['id', 'latitude', 'longitude'])
+            ->filter(fn (Job $job) => HaversineDistance::between(
+                $origin['lat'],
+                $origin['lng'],
+                (float) $job->latitude,
+                (float) $job->longitude,
+            ) <= $radiusKm)
+            ->pluck('id')
+            ->all();
     }
 
     public function show(

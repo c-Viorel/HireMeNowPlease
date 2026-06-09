@@ -71,6 +71,14 @@
                 <label for="experience_level" class="field-label">Nivel</label>
                 <input id="experience_level" name="experience_level" value="{{ $filters['experience_level'] ?? '' }}" type="search" class="field-control" placeholder="mid">
             </div>
+            <div>
+                <label for="near" class="field-label">Langa orasul</label>
+                <input id="near" name="near" value="{{ $filters['near'] ?? '' }}" type="search" class="field-control" placeholder="Bucuresti">
+            </div>
+            <div>
+                <label for="radius_km" class="field-label">Raza (km)</label>
+                <input id="radius_km" name="radius_km" value="{{ $filters['radius_km'] ?? '' }}" type="number" min="1" max="500" class="field-control" placeholder="50">
+            </div>
             <div class="flex items-end gap-3 lg:col-span-6">
                 <button type="submit" class="btn-primary">Filtreaza</button>
                 <a href="{{ route('jobs.index') }}" class="btn-secondary">Reseteaza</a>

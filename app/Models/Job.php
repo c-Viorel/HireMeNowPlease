@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\EmploymentType;
+use App\Enums\JobCategory;
 use App\Enums\JobStatus;
 use App\Enums\SalaryType;
 use App\Enums\WorkplaceType;
@@ -33,6 +34,9 @@ class Job extends Model
             'employment_type' => EmploymentType::class,
             'workplace_type' => WorkplaceType::class,
             'salary_type' => SalaryType::class,
+            'category' => JobCategory::class,
+            'latitude' => 'float',
+            'longitude' => 'float',
             'status' => JobStatus::class,
             'published_at' => 'datetime',
         ];

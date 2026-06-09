@@ -17,6 +17,11 @@ class JobFitScorer
         'crm', 'onboarding', 'account planning', 'budgeting', 'forecasting', 'excel', 'ifrs',
         'siem', 'incident response', 'vulnerability management', 'linux', 'process improvement',
         'kpi tracking', 'planning', 'vendor management',
+        // Blue-collar / operational taxonomy (RO market).
+        'sofer', 'sofer livrari', 'curier', 'stivuitorist', 'depozit', 'gestiune marfa', 'logistica',
+        'productie', 'operator productie', 'sudor', 'lacatus', 'zidar', 'dulgher', 'instalator',
+        'electrician', 'mecanic', 'ospatar', 'bucatar', 'barman', 'camerista', 'menajera',
+        'agent paza', 'macaragiu', 'vopsitor', 'montator', 'manipulant', 'picker',
     ];
 
     public function score(CandidateProfile|array|null $profile, Job $job): FitScore
