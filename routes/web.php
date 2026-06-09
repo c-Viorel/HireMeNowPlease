@@ -92,6 +92,10 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('/privacy', [\App\Http\Controllers\PrivacyController::class, 'edit'])->name('privacy.edit');
+    Route::get('/privacy/export', [\App\Http\Controllers\PrivacyController::class, 'export'])->name('privacy.export');
+    Route::delete('/privacy', [\App\Http\Controllers\PrivacyController::class, 'destroy'])->name('privacy.destroy');
 });
 
 require __DIR__.'/auth.php';
