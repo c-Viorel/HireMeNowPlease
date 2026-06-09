@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Candidate\ApplicationController as CandidateApplicationController;
 use App\Http\Controllers\Candidate\AiCvImportController;
 use App\Http\Controllers\Candidate\EmployerReviewController;
+use App\Http\Controllers\Candidate\VideoInterviewController as CandidateVideoInterviewController;
 use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\Candidate\DashboardController as CandidateDashboardController;
 use App\Http\Controllers\Candidate\ProfileController as CandidateProfileController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\Employer\InterviewScorecardController;
 use App\Http\Controllers\Employer\JobController as EmployerJobController;
 use App\Http\Controllers\Employer\OnboardingController;
 use App\Http\Controllers\Employer\ShortlistController;
+use App\Http\Controllers\Employer\VideoInterviewController as EmployerVideoInterviewController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\JobController;
@@ -64,6 +66,8 @@ Route::middleware(['auth', 'active', 'verified'])->group(function () {
         Route::get('/profile/ai-import', [AiCvImportController::class, 'create'])->name('profile.ai.create');
         Route::post('/profile/ai-import/preview', [AiCvImportController::class, 'preview'])->name('profile.ai.preview');
         Route::post('/profile/ai-import/apply', [AiCvImportController::class, 'apply'])->name('profile.ai.apply');
+        Route::get('/video/{interview}', [CandidateVideoInterviewController::class, 'show'])->name('video.show');
+        Route::post('/video/{interview}/answers/{answer}', [CandidateVideoInterviewController::class, 'storeAnswer'])->name('video.answer');
     });
 
     Route::prefix('employer')->name('employer.')->middleware('role:employer')->group(function () {
@@ -76,6 +80,8 @@ Route::middleware(['auth', 'active', 'verified'])->group(function () {
         Route::post('/applications/{application}/shortlist', [ShortlistController::class, 'store'])->name('applications.shortlist');
         Route::get('/applications/{application}/onboarding', [OnboardingController::class, 'show'])->name('applications.onboarding');
         Route::patch('/applications/{application}/onboarding/tasks/{task}', [OnboardingController::class, 'toggleTask'])->name('applications.onboarding.task');
+        Route::post('/applications/{application}/video', [EmployerVideoInterviewController::class, 'store'])->name('applications.video.store');
+        Route::patch('/applications/{application}/video/{answer}/transcribe', [EmployerVideoInterviewController::class, 'transcribe'])->name('applications.video.transcribe');
         Route::resource('companies', EmployerCompanyController::class);
         Route::resource('jobs', EmployerJobController::class);
     });
