@@ -8,6 +8,7 @@ use App\Models\Application;
 use App\Notifications\ApplicationStatusChangedNotification;
 use App\Support\Copilot\HrCopilot;
 use App\Support\Insights\JobFitScorer;
+use App\Support\Onboarding\OnboardingProvisioner;
 use App\Support\Shortlists;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -95,6 +96,10 @@ class ApplicationController extends Controller
 
         if ($validated['status'] === ApplicationStatus::Shortlisted->value) {
             Shortlists::createForApplication($application);
+        }
+
+        if ($validated['status'] === ApplicationStatus::Accepted->value) {
+            app(OnboardingProvisioner::class)->provision($application);
         }
 
         if ($statusChanged) {

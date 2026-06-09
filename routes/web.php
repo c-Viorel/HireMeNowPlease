@@ -16,6 +16,7 @@ use App\Http\Controllers\Employer\CompanyController as EmployerCompanyController
 use App\Http\Controllers\Employer\DashboardController as EmployerDashboardController;
 use App\Http\Controllers\Employer\InterviewScorecardController;
 use App\Http\Controllers\Employer\JobController as EmployerJobController;
+use App\Http\Controllers\Employer\OnboardingController;
 use App\Http\Controllers\Employer\ShortlistController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\Public\HomeController;
@@ -73,6 +74,8 @@ Route::middleware(['auth', 'active', 'verified'])->group(function () {
         Route::patch('/applications/{application}/status', [EmployerApplicationController::class, 'updateStatus'])->name('applications.status');
         Route::post('/applications/{application}/scorecard', [InterviewScorecardController::class, 'update'])->name('applications.scorecard');
         Route::post('/applications/{application}/shortlist', [ShortlistController::class, 'store'])->name('applications.shortlist');
+        Route::get('/applications/{application}/onboarding', [OnboardingController::class, 'show'])->name('applications.onboarding');
+        Route::patch('/applications/{application}/onboarding/tasks/{task}', [OnboardingController::class, 'toggleTask'])->name('applications.onboarding.task');
         Route::resource('companies', EmployerCompanyController::class);
         Route::resource('jobs', EmployerJobController::class);
     });
