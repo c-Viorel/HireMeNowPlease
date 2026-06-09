@@ -5,6 +5,7 @@
     $navigation = match ($role) {
         \App\Enums\UserRole::Candidate => [
             ['label' => 'Dashboard', 'href' => route('candidate.dashboard'), 'active' => request()->routeIs('candidate.dashboard')],
+            ['label' => 'Cauta joburi', 'href' => route('jobs.index'), 'active' => request()->routeIs('jobs.*')],
             ['label' => 'Profil', 'href' => route('candidate.profile.edit'), 'active' => request()->routeIs('candidate.profile.*')],
             ['label' => 'Aplicarile mele', 'href' => route('candidate.applications.index'), 'active' => request()->routeIs('candidate.applications.*')],
             ['label' => 'Mesaje', 'href' => route('conversations.index'), 'active' => request()->routeIs('conversations.*')],
@@ -63,6 +64,13 @@
                     </div>
 
                     <div class="hidden items-center gap-3 lg:flex">
+                        <a href="{{ route('home') }}" class="inline-flex items-center gap-1 text-sm font-semibold text-slate-600 hover:text-emerald-700">
+                            <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                                <path d="M4 10h12M4 10l4-4M4 10l4 4" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                            Site public
+                        </a>
+
                         @if ($role === \App\Enums\UserRole::Employer)
                             <a href="{{ route('employer.jobs.create') }}" class="btn-primary">Publica job</a>
                         @endif
@@ -98,6 +106,8 @@
                         @if ($role === \App\Enums\UserRole::Employer)
                             <a href="{{ route('employer.jobs.create') }}" class="mobile-nav-link">Publica job</a>
                         @endif
+
+                        <a href="{{ route('home') }}" class="mobile-nav-link">Site public</a>
 
                         <div class="border-t border-slate-200 pt-3">
                             <p class="text-sm font-semibold text-slate-900">{{ $user?->name }}</p>

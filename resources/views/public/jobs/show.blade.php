@@ -54,24 +54,6 @@
         </article>
 
         <aside class="h-fit space-y-5">
-            <x-insights.responsiveness-card :score="$responsivenessScore" />
-
-            @if ($fitScore)
-                <x-insights.job-fit-card :fit-score="$fitScore" title="Potrivirea ta pentru rol" />
-            @endif
-
-            @if ($candidateAdvice)
-                <section class="rounded-lg border border-violet-200 bg-violet-50 p-5">
-                    <p class="text-sm font-semibold text-violet-950">Career Coach</p>
-                    <p class="mt-2 text-sm text-slate-700">{{ $candidateAdvice['pitch'] }}</p>
-                    <ul class="mt-3 space-y-1 text-sm text-slate-700">
-                        @foreach ($candidateAdvice['actions'] as $action)
-                            <li>{{ $action }}</li>
-                        @endforeach
-                    </ul>
-                </section>
-            @endif
-
             <section class="rounded-lg border border-slate-200 bg-white p-6">
                 <h2 class="text-lg font-semibold text-slate-950">Aplica pentru rol</h2>
 
@@ -124,12 +106,32 @@
 
                 <div class="mt-6 border-t border-slate-200 pt-6">
                     <h3 class="text-sm font-semibold text-slate-950">Companie</h3>
-                    <p class="mt-2 text-sm text-slate-600">{{ $job->company->name }}</p>
+                    <a href="{{ route('companies.show', $job->company) }}" class="mt-2 inline-block text-sm font-semibold text-emerald-700 hover:text-emerald-800">{{ $job->company->name }}</a>
                     @if ($job->company->location)
                         <p class="mt-1 text-sm text-slate-500">{{ $job->company->location }}</p>
                     @endif
                 </div>
             </section>
+
+            @if ($fitScore)
+                <x-insights.job-fit-card :fit-score="$fitScore" title="Potrivirea ta pentru rol" :compact="true" />
+            @endif
+
+            <x-insights.responsiveness-card :score="$responsivenessScore" :compact="true" />
+
+            @if ($candidateAdvice)
+                <section class="rounded-lg border border-violet-200 bg-violet-50 p-5">
+                    <p class="text-sm font-semibold text-violet-950">Career Coach</p>
+                    <p class="mt-2 text-sm text-slate-700">{{ $candidateAdvice['pitch'] }}</p>
+                    @if (! empty($candidateAdvice['actions']))
+                        <ul class="mt-3 space-y-1 text-sm text-slate-700">
+                            @foreach (array_slice($candidateAdvice['actions'], 0, 2) as $action)
+                                <li>{{ $action }}</li>
+                            @endforeach
+                        </ul>
+                    @endif
+                </section>
+            @endif
         </aside>
     </section>
 </x-public-layout>

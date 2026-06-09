@@ -1,7 +1,7 @@
 @props(['score' => null, 'compact' => false, 'label' => null])
 
 @if ($score)
-    <section {{ $attributes->merge(['class' => 'rounded-lg border border-amber-200 bg-amber-50 p-5']) }}>
+    <section x-data="{ open: false }" {{ $attributes->merge(['class' => 'rounded-lg border border-amber-200 bg-amber-50 p-5']) }}>
         <div class="flex items-start justify-between gap-4">
             <div>
                 @if ($label)
@@ -17,7 +17,17 @@
             </div>
         </div>
 
-        @unless ($compact)
+        @if ($compact)
+            <button type="button" @click="open = ! open" class="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-amber-800 hover:text-amber-900">
+                <span x-show="! open">Vezi detaliile</span>
+                <span x-show="open" x-cloak>Ascunde detaliile</span>
+                <svg class="h-4 w-4 transition" :class="open ? 'rotate-180' : ''" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path d="M5 7.5 10 12l5-4.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </button>
+        @endif
+
+        <div @if ($compact) x-show="open" x-cloak @endif>
             <dl class="mt-4 grid gap-3 sm:grid-cols-3">
                 <div class="rounded-md bg-white p-3">
                     <dt class="text-xs font-medium text-slate-500">Timp mediu</dt>
@@ -38,6 +48,6 @@
                     <li>{{ $signal }}</li>
                 @endforeach
             </ul>
-        @endunless
+        </div>
     </section>
 @endif
