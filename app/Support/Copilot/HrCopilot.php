@@ -3,12 +3,15 @@
 namespace App\Support\Copilot;
 
 use App\Models\Application;
+use App\Support\Cv\CvIntegrityAnalyzer;
 use App\Support\Insights\JobFitScorer;
 
 class HrCopilot
 {
-    public function __construct(private readonly JobFitScorer $fitScorer)
-    {
+    public function __construct(
+        private readonly JobFitScorer $fitScorer,
+        private readonly CvIntegrityAnalyzer $integrityAnalyzer,
+    ) {
     }
 
     /**
@@ -20,6 +23,10 @@ class HrCopilot
         $fit = $this->fitScorer->score($application->profile_snapshot ?: $application->candidateProfile?->snapshot(), $application->job)->toArray();
         $score = (int) $fit['score'];
 
+        $integritySignals = $application->profile_snapshot
+            ? $this->integrityAnalyzer->analyze($application->profile_snapshot)
+            : ($application->candidateProfile ? $this->integrityAnalyzer->analyze($application->candidateProfile) : []);
+
         return [
             'title' => $score >= 75 ? 'Prioritizeaza candidatul' : ($score >= 55 ? 'Clarifica rapid potrivirea' : 'Verifica zonele lipsa inainte de interviu'),
             'summary' => $this->summary($application, $fit),
@@ -27,6 +34,7 @@ class HrCopilot
             'concerns' => $fit['gaps'] ?: ['Nu sunt semnale critice lipsa in profilul curent.'],
             'questions' => $this->questions($fit),
             'next_action' => $this->nextAction($score),
+            'verify_signals' => array_map(fn ($signal) => $signal['message'], $integritySignals),
         ];
     }
 

@@ -16,7 +16,13 @@ class CandidateCertification extends Model
         return [
             'issued_at' => 'date',
             'expires_at' => 'date',
+            'verified_at' => 'datetime',
         ];
+    }
+
+    public function isVerified(): bool
+    {
+        return $this->verified_at !== null;
     }
 
     public function candidateProfile(): BelongsTo

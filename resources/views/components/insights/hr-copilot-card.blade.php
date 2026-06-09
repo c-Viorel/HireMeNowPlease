@@ -34,6 +34,17 @@
             </ol>
         </div>
 
+        @if (! empty($brief['verify_signals']))
+            <div class="mt-4 rounded-md border border-amber-200 bg-amber-50 p-4">
+                <p class="text-sm font-semibold text-amber-900">Semnale de verificat in CV</p>
+                <ul class="mt-2 space-y-1 text-sm text-amber-800">
+                    @foreach ($brief['verify_signals'] as $signal)
+                        <li>{{ $signal }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <p class="mt-4 text-sm font-semibold text-emerald-950">Urmatorul pas: {{ $brief['next_action'] }}</p>
     </section>
 @endif
