@@ -5,13 +5,14 @@ use App\Http\Controllers\Admin\CompanyController as AdminCompanyController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\JobController as AdminJobController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
-use App\Http\Controllers\Candidate\ApplicationController as CandidateApplicationController;
 use App\Http\Controllers\Candidate\AiCvImportController;
+use App\Http\Controllers\Candidate\ApplicationController as CandidateApplicationController;
+use App\Http\Controllers\Candidate\AssessmentController;
+use App\Http\Controllers\Candidate\DashboardController as CandidateDashboardController;
 use App\Http\Controllers\Candidate\EmployerReviewController;
+use App\Http\Controllers\Candidate\ProfileController as CandidateProfileController;
 use App\Http\Controllers\Candidate\VideoInterviewController as CandidateVideoInterviewController;
 use App\Http\Controllers\ConversationController;
-use App\Http\Controllers\Candidate\DashboardController as CandidateDashboardController;
-use App\Http\Controllers\Candidate\ProfileController as CandidateProfileController;
 use App\Http\Controllers\Employer\ApplicationController as EmployerApplicationController;
 use App\Http\Controllers\Employer\CompanyController as EmployerCompanyController;
 use App\Http\Controllers\Employer\DashboardController as EmployerDashboardController;
@@ -21,11 +22,12 @@ use App\Http\Controllers\Employer\OnboardingController;
 use App\Http\Controllers\Employer\ShortlistController;
 use App\Http\Controllers\Employer\VideoInterviewController as EmployerVideoInterviewController;
 use App\Http\Controllers\MessageController;
-use App\Http\Controllers\Public\HomeController;
-use App\Http\Controllers\Public\JobController;
+use App\Http\Controllers\PrivacyController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Public\CompanyController as PublicCompanyController;
 use App\Http\Controllers\Public\DiasporaController;
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Public\HomeController;
+use App\Http\Controllers\Public\JobController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
@@ -68,6 +70,9 @@ Route::middleware(['auth', 'active', 'verified'])->group(function () {
         Route::post('/profile/ai-import/apply', [AiCvImportController::class, 'apply'])->name('profile.ai.apply');
         Route::get('/video/{interview}', [CandidateVideoInterviewController::class, 'show'])->name('video.show');
         Route::post('/video/{interview}/answers/{answer}', [CandidateVideoInterviewController::class, 'storeAnswer'])->name('video.answer');
+        Route::get('/assessments', [AssessmentController::class, 'index'])->name('assessments.index');
+        Route::get('/assessments/{assessment:slug}', [AssessmentController::class, 'show'])->name('assessments.show');
+        Route::post('/assessments/{assessment:slug}', [AssessmentController::class, 'submit'])->name('assessments.submit');
     });
 
     Route::prefix('employer')->name('employer.')->middleware('role:employer')->group(function () {
@@ -102,9 +107,9 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::get('/privacy', [\App\Http\Controllers\PrivacyController::class, 'edit'])->name('privacy.edit');
-    Route::get('/privacy/export', [\App\Http\Controllers\PrivacyController::class, 'export'])->name('privacy.export');
-    Route::delete('/privacy', [\App\Http\Controllers\PrivacyController::class, 'destroy'])->name('privacy.destroy');
+    Route::get('/privacy', [PrivacyController::class, 'edit'])->name('privacy.edit');
+    Route::get('/privacy/export', [PrivacyController::class, 'export'])->name('privacy.export');
+    Route::delete('/privacy', [PrivacyController::class, 'destroy'])->name('privacy.destroy');
 });
 
 require __DIR__.'/auth.php';

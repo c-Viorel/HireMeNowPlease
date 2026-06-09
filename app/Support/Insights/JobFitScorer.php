@@ -68,7 +68,8 @@ class JobFitScorer
      */
     private function candidateSkills(array $snapshot): array
     {
-        $skills = collect($snapshot['skills'] ?? []);
+        $skills = collect($snapshot['skills'] ?? [])
+            ->merge($snapshot['verified_skills'] ?? []);
 
         foreach ($snapshot['experiences'] ?? [] as $experience) {
             $skills = $skills

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\CandidateProfileFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +12,7 @@ use Illuminate\Support\Facades\Storage;
 
 class CandidateProfile extends Model
 {
-    /** @use HasFactory<\Database\Factories\CandidateProfileFactory> */
+    /** @use HasFactory<CandidateProfileFactory> */
     use HasFactory;
 
     protected $guarded = [];
@@ -70,12 +71,17 @@ class CandidateProfile extends Model
         return $this->hasOne(CandidateJobPreference::class);
     }
 
+    public function assessmentResults(): HasMany
+    {
+        return $this->hasMany(AssessmentResult::class);
+    }
+
     /**
      * @return array<string, mixed>
      */
     public function snapshot(): array
     {
-        $this->loadMissing(['experiences', 'educations', 'certifications', 'links', 'jobPreference']);
+        $this->loadMissing(['experiences', 'educations', 'certifications', 'links', 'jobPreference', 'assessmentResults.assessment']);
 
         return [
             'headline' => $this->headline,
@@ -83,6 +89,12 @@ class CandidateProfile extends Model
             'phone' => $this->phone,
             'location' => $this->location,
             'skills' => $this->skills ?? [],
+            'verified_skills' => $this->assessmentResults
+                ->where('passed', true)
+                ->map(fn (AssessmentResult $result) => $result->assessment?->skill_tag)
+                ->filter()
+                ->values()
+                ->all(),
             'experiences' => $this->experiences->map(fn (CandidateExperience $experience) => [
                 'title' => $experience->title,
                 'company' => $experience->company,
