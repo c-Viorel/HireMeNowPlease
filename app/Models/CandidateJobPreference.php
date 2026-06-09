@@ -14,6 +14,7 @@ class CandidateJobPreference extends Model
         return [
             'preferred_workplace_types' => 'array',
             'preferred_employment_types' => 'array',
+            'open_to_relocation' => 'boolean',
         ];
     }
 

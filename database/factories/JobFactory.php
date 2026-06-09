@@ -39,6 +39,7 @@ class JobFactory extends Factory
             'shift_schedule' => null,
             'latitude' => null,
             'longitude' => null,
+            'offers_relocation' => false,
             'salary_min' => null,
             'salary_max' => null,
             'salary_type' => SalaryType::Gross,

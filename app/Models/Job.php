@@ -37,6 +37,7 @@ class Job extends Model
             'category' => JobCategory::class,
             'latitude' => 'float',
             'longitude' => 'float',
+            'offers_relocation' => 'boolean',
             'status' => JobStatus::class,
             'published_at' => 'datetime',
         ];

@@ -21,11 +21,13 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\JobController;
 use App\Http\Controllers\Public\CompanyController as PublicCompanyController;
+use App\Http\Controllers\Public\DiasporaController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
 Route::get('/jobs', [JobController::class, 'index'])->name('jobs.index');
+Route::get('/diaspora', [DiasporaController::class, 'index'])->name('diaspora.index');
 Route::get('/companies/{company:slug}', [PublicCompanyController::class, 'show'])->name('companies.show');
 Route::get('/companies/{company:slug}/jobs/{job:slug}', [JobController::class, 'show'])
     ->scopeBindings()
