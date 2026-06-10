@@ -81,6 +81,7 @@ Route::middleware(['auth', 'active', 'verified'])->group(function () {
         Route::get('/applications/{application}', [EmployerApplicationController::class, 'show'])->name('applications.show');
         Route::get('/applications/{application}/cv', [EmployerApplicationController::class, 'downloadCv'])->name('applications.cv');
         Route::patch('/applications/{application}/status', [EmployerApplicationController::class, 'updateStatus'])->name('applications.status');
+        Route::patch('/applications-bulk/status', [EmployerApplicationController::class, 'bulkUpdateStatus'])->name('applications.bulk-status');
         Route::post('/applications/{application}/scorecard', [InterviewScorecardController::class, 'update'])->name('applications.scorecard');
         Route::post('/applications/{application}/shortlist', [ShortlistController::class, 'store'])->name('applications.shortlist');
         Route::get('/applications/{application}/onboarding', [OnboardingController::class, 'show'])->name('applications.onboarding');
