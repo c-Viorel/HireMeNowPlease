@@ -56,7 +56,7 @@
                                         'bg-emerald-100 text-emerald-700' => $count >= 5,
                                         'bg-sky-100 text-sky-700' => $count > 0 && $count < 5,
                                         'bg-slate-100 text-slate-500' => $count === 0,
-                                    ])>{{ $count }} {{ str('aplicare')->plural($count, 'aplicari') }}</span>
+                                    ])>{{ $count }} {{ $count === 1 ? 'aplicare' : 'aplicari' }}</span>
                                 </div>
                             </div>
                             <div class="flex items-center gap-4 text-sm font-semibold">
