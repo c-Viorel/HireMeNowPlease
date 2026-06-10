@@ -1,41 +1,23 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Messages') }}</h2>
+        <h2 class="text-xl font-semibold leading-tight text-slate-800">{{ __('Messages') }}</h2>
     </x-slot>
 
-    <div class="py-10">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="bg-white shadow-sm sm:rounded-lg">
-                <div class="divide-y divide-gray-100">
-                    @forelse ($conversations as $conversation)
-                        @php
-                            $application = $conversation->application;
-                            $latestMessage = $conversation->latestMessage;
-                        @endphp
+    <div class="py-6">
+        <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            <div class="surface flex h-[calc(100vh-12rem)] overflow-hidden p-0">
+                @include('conversations.partials.sidebar')
 
-                        <a href="{{ route('conversations.show', $conversation) }}" class="block px-6 py-5 hover:bg-gray-50">
-                            <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                                <div>
-                                    <p class="font-medium text-gray-900">{{ $application->job->title }}</p>
-                                    <p class="mt-1 text-sm text-gray-600">
-                                        {{ $application->job->company->name }} · {{ $application->candidate->name }}
-                                    </p>
-                                    <p class="mt-3 line-clamp-2 text-sm text-gray-600">
-                                        {{ $latestMessage?->body ?? 'No messages yet.' }}
-                                    </p>
-                                </div>
-                                <p class="text-sm text-gray-500">
-                                    {{ optional($latestMessage?->created_at ?? $conversation->created_at)->diffForHumans() }}
-                                </p>
-                            </div>
-                        </a>
-                    @empty
-                        <div class="px-6 py-10 text-sm text-gray-600">No conversations yet.</div>
-                    @endforelse
-                </div>
+                <section class="hidden flex-1 flex-col items-center justify-center bg-slate-50 p-8 text-center md:flex">
+                    <div class="grid h-16 w-16 place-items-center rounded-full bg-white text-slate-300 shadow-sm">
+                        <svg class="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                            <path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h13A2.5 2.5 0 0 1 21 8.5v6a2.5 2.5 0 0 1-2.5 2.5H9l-4 3v-3H5.5A2.5 2.5 0 0 1 3 14.5v-6Z" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                    <p class="mt-4 text-sm font-semibold text-slate-700">Selecteaza o conversatie</p>
+                    <p class="mt-1 text-sm text-slate-500">Alege un candidat sau angajator din lista pentru a vedea mesajele.</p>
+                </section>
             </div>
-
-            <div class="mt-6">{{ $conversations->links() }}</div>
         </div>
     </div>
 </x-app-layout>

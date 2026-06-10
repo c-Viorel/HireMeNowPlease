@@ -9,26 +9,16 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 
 class ConversationController extends Controller
 {
     public function index(Request $request): View
     {
-        $user = $request->user();
-
-        $conversations = Conversation::query()
-            ->with(['application.candidate', 'application.job.company', 'latestMessage.sender'])
-            ->withMax('messages as last_message_at', 'created_at')
-            ->whereHas('application', function ($query) use ($user) {
-                $query->where('candidate_id', $user->id)
-                    ->orWhereHas('job.company', fn ($companyQuery) => $companyQuery->where('owner_id', $user->id));
-            })
-            ->orderByRaw('COALESCE(last_message_at, conversations.created_at) DESC')
-            ->paginate(10);
-
         return view('conversations.index', [
-            'conversations' => $conversations,
+            'conversations' => $this->conversationList($request->user()),
+            'activeConversation' => null,
         ]);
     }
 
@@ -44,7 +34,7 @@ class ConversationController extends Controller
             ->with('status', 'conversation-ready');
     }
 
-    public function show(Conversation $conversation): View
+    public function show(Request $request, Conversation $conversation): View
     {
         Gate::authorize('view', $conversation);
 
@@ -54,13 +44,52 @@ class ConversationController extends Controller
             ->update(['read_at' => now()]);
 
         return view('conversations.show', [
-            'conversation' => $conversation->load([
+            'conversations' => $this->conversationList($request->user()),
+            'activeConversation' => $conversation->load([
                 'application.candidate',
-                'application.job.company',
+                'application.job.company.owner',
                 'messages' => fn ($query) => $query->oldest(),
                 'messages.sender',
             ]),
         ]);
+    }
+
+    /**
+     * Resolve the participant on the other side of a conversation for the
+     * given viewer (candidate sees the employer, employer sees the candidate).
+     */
+    public static function otherParticipant(Conversation $conversation, User $viewer): ?User
+    {
+        $application = $conversation->application;
+
+        if ($application === null) {
+            return null;
+        }
+
+        if ($application->candidate_id === $viewer->id) {
+            return $application->job?->company?->owner;
+        }
+
+        return $application->candidate;
+    }
+
+    /**
+     * @return Collection<int, Conversation>
+     */
+    private function conversationList(User $user)
+    {
+        return Conversation::query()
+            ->with(['application.candidate', 'application.job.company.owner', 'latestMessage.sender'])
+            ->withMax('messages as last_message_at', 'created_at')
+            ->withCount(['messages as unread_count' => function ($query) use ($user) {
+                $query->where('sender_id', '!=', $user->id)->whereNull('read_at');
+            }])
+            ->whereHas('application', function ($query) use ($user) {
+                $query->where('candidate_id', $user->id)
+                    ->orWhereHas('job.company', fn ($companyQuery) => $companyQuery->where('owner_id', $user->id));
+            })
+            ->orderByRaw('COALESCE(last_message_at, conversations.created_at) DESC')
+            ->get();
     }
 
     private function participatesInApplication(User $user, Application $application): bool
