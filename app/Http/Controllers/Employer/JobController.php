@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Employer;
 
+use App\Enums\JobStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\JobRequest;
 use App\Models\Company;
@@ -12,6 +13,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class JobController extends Controller
 {
@@ -19,14 +21,29 @@ class JobController extends Controller
 
     public function index(Request $request): View
     {
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:120'],
+            'status' => ['nullable', Rule::in(array_column(JobStatus::cases(), 'value'))],
+            'per_page' => ['nullable', 'integer', Rule::in([10, 25, 50, 100])],
+        ]);
+
+        $perPage = (int) ($filters['per_page'] ?? 10);
+
         $jobs = Job::query()
             ->whereHas('company', fn ($query) => $query->where('owner_id', $request->user()->id))
             ->with('company')
             ->withCount('applications')
+            ->when($filters['q'] ?? null, fn ($query, string $search) => $query->where('title', 'like', '%'.$search.'%'))
+            ->when($filters['status'] ?? null, fn ($query, string $status) => $query->where('status', $status))
             ->latest()
-            ->paginate(10);
+            ->paginate($perPage)
+            ->withQueryString();
 
-        return view('employer.jobs.index', ['jobs' => $jobs]);
+        return view('employer.jobs.index', [
+            'jobs' => $jobs,
+            'filters' => $filters,
+            'statuses' => JobStatus::cases(),
+        ]);
     }
 
     public function create(Request $request): View
@@ -117,7 +134,7 @@ class JobController extends Controller
     }
 
     /**
-     * @param array<string, mixed> $validated
+     * @param  array<string, mixed>  $validated
      * @return array<string, mixed>
      */
     private function jobData(array $validated, ?Job $job = null, ?string $slug = null): array
@@ -170,7 +187,7 @@ class JobController extends Controller
     /**
      * @template TReturn
      *
-     * @param callable(string): TReturn $operation
+     * @param  callable(string): TReturn  $operation
      * @return TReturn
      */
     private function withUniqueSlugRetry(string $title, int $companyId, ?Job $ignore, callable $operation): mixed
