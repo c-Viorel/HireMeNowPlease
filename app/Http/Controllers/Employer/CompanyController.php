@@ -18,8 +18,25 @@ class CompanyController extends Controller
 
     public function index(Request $request): View
     {
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:120'],
+            'status' => ['nullable', 'in:pending,approved,rejected'],
+            'per_page' => ['nullable', 'integer', 'in:10,25,50,100'],
+        ]);
+
+        $perPage = (int) ($filters['per_page'] ?? 10);
+
+        $companies = $request->user()->companies()
+            ->withCount('jobs')
+            ->when($filters['q'] ?? null, fn ($query, string $search) => $query->where('name', 'like', '%'.$search.'%'))
+            ->when($filters['status'] ?? null, fn ($query, string $status) => $query->where('status', $status))
+            ->latest()
+            ->paginate($perPage)
+            ->withQueryString();
+
         return view('employer.companies.index', [
-            'companies' => $request->user()->companies()->withCount('jobs')->latest()->paginate(10),
+            'companies' => $companies,
+            'filters' => $filters,
         ]);
     }
 
@@ -151,7 +168,7 @@ class CompanyController extends Controller
     /**
      * @template TReturn
      *
-     * @param callable(string): TReturn $operation
+     * @param  callable(string): TReturn  $operation
      * @return TReturn
      */
     private function withUniqueSlugRetry(string $name, ?Company $ignore, callable $operation): mixed
