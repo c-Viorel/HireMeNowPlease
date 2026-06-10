@@ -31,7 +31,7 @@
                     @forelse ($company->jobs as $job)
                         <div class="px-6 py-4">
                             <a href="{{ route('employer.jobs.show', $job) }}" class="font-medium text-indigo-600 hover:text-indigo-700">{{ $job->title }}</a>
-                            <p class="mt-1 text-sm text-gray-600">{{ ucfirst($job->status->value) }}</p>
+                            <p class="mt-1"><span class="rounded-full px-2.5 py-0.5 text-xs font-semibold {{ $job->status->chipClass() }}">{{ $job->status->label() }}</span></p>
                         </div>
                     @empty
                         <div class="px-6 py-8 text-sm text-gray-600">No jobs yet.</div>

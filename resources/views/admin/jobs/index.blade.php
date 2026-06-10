@@ -39,7 +39,7 @@
                                     <td class="px-4 py-3 font-medium text-gray-900">{{ $job->title }}</td>
                                     <td class="px-4 py-3">{{ $job->company->name }}</td>
                                     <td class="px-4 py-3">{{ $job->applications_count }}</td>
-                                    <td class="px-4 py-3">{{ ucfirst($job->status->value) }}</td>
+                                    <td class="px-4 py-3"><span class="rounded-full px-2.5 py-0.5 text-xs font-semibold {{ $job->status->chipClass() }}">{{ $job->status->label() }}</span></td>
                                     <td class="px-4 py-3">{{ $job->published_at?->toFormattedDateString() ?? 'Not published' }}</td>
                                     <td class="px-4 py-3">
                                         <form method="POST" action="{{ route('admin.jobs.update', $job) }}" class="flex items-center gap-2">

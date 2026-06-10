@@ -15,7 +15,7 @@
                             <p class="text-sm text-gray-600">{{ $job->company->name }}</p>
                             <p class="mt-3 whitespace-pre-line text-gray-800">{{ $job->description }}</p>
                         </div>
-                        <span class="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">{{ ucfirst($job->status->value) }}</span>
+                        <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $job->status->chipClass() }}">{{ $job->status->label() }}</span>
                     </div>
                     <dl class="mt-6 grid gap-4 text-sm text-gray-700 sm:grid-cols-2 lg:grid-cols-4">
                         <div>
