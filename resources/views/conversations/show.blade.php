@@ -39,8 +39,22 @@
                                         'rounded-br-md bg-emerald-600 text-white' => $isMine,
                                         'rounded-bl-md bg-white text-slate-900 ring-1 ring-slate-200' => ! $isMine,
                                     ])>{{ $message->body }}</div>
-                                    <p class="mt-1 px-1 text-[11px] text-slate-400 {{ $isMine ? 'text-right' : 'text-left' }}">
-                                        {{ $message->created_at->diffForHumans() }}
+                                    <p class="mt-1 flex items-center gap-1 px-1 text-[11px] text-slate-400 {{ $isMine ? 'justify-end' : 'justify-start' }}">
+                                        <span>{{ $message->created_at->diffForHumans() }}</span>
+                                        @if ($isMine)
+                                            <span aria-hidden="true">·</span>
+                                            @if ($message->read_at)
+                                                <span class="inline-flex items-center gap-0.5 font-medium text-emerald-600">
+                                                    <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m2 11 3.5 3.5L11 8m3 3 4-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                    Citit
+                                                </span>
+                                            @else
+                                                <span class="inline-flex items-center gap-0.5">
+                                                    <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m4 10 4 4 8-9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                    Trimis
+                                                </span>
+                                            @endif
+                                        @endif
                                     </p>
                                 </div>
                             </div>

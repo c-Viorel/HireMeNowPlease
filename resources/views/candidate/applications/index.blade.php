@@ -51,7 +51,13 @@
                                 <span class="chip">{{ str($application->status->value)->replace('_', ' ')->title() }}</span>
                             </div>
                             <div class="lg:text-right">
-                                <a href="{{ route('jobs.show', [$application->job->company, $application->job]) }}" class="text-sm font-bold text-emerald-700 hover:text-emerald-800">View job</a>
+                                <div class="flex flex-col items-start gap-2 lg:items-end">
+                                    <a href="{{ route('jobs.show', [$application->job->company, $application->job]) }}" class="text-sm font-bold text-emerald-700 hover:text-emerald-800">Vezi jobul</a>
+                                    <form method="POST" action="{{ route('conversations.store', $application) }}">
+                                        @csrf
+                                        <button type="submit" class="text-sm font-semibold text-slate-500 hover:text-slate-700">Trimite mesaj</button>
+                                    </form>
+                                </div>
                             </div>
                         </article>
                     @empty
